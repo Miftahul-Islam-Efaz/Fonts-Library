@@ -1,6 +1,7 @@
 import Link from "next/link"
 import EditableSpecimen from "@/components/EditableSpecimen"
 import FavoriteButton from "@/components/FavoriteButton"
+import RowControls from "@/components/RowControls"
 import { cssFamily, previewStyles } from "@/lib/fonts"
 import type { FontRecord } from "@/lib/types"
 
@@ -15,9 +16,11 @@ interface Props {
 
 /**
  * One line of the library, in the style of a foundry specimen list: a thin meta
- * row, the family name set in the family itself at the chosen preview size, and
- * a footer with its source. The specimen text is server-rendered, so crawlers
- * read real text, and is editable in place once the page hydrates.
+ * row with its own bold / italic, leading and size controls, the family name
+ * set in the family itself, and a footer with its source.
+ *
+ * The specimen text is server-rendered, so crawlers read real text, and is
+ * editable in place once the page hydrates.
  */
 export default function FontRow({
 	font,
@@ -51,6 +54,9 @@ export default function FontRow({
 					isFavorite={isFavorite}
 					signedIn={signedIn}
 				/>
+
+				<RowControls fontName={font.name} />
+
 				<span className="rowHeadRight">
 					<span>
 						{styleCount} {styleCount === 1 ? "style" : "styles"}
@@ -71,7 +77,7 @@ export default function FontRow({
 			<div className="rowFoot">
 				<span>{font.notes ? font.notes : font.license ?? "In the library"}</span>
 				<span className="rowFootRight">
-					<span className="rowEditHint">Click the preview to type</span>
+					<span className="rowEditHint">Click on text to edit</span>
 					{badge ? <span className="badge">{badge}</span> : null}
 					<span className="likeCount">
 						{likes} {likes === 1 ? "like" : "likes"}

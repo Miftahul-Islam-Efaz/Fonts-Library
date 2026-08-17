@@ -1,8 +1,9 @@
 "use client"
 
-import { useActionState, useState } from "react"
+import { useActionState, useEffect, useRef, useState } from "react"
 import { addFontAction } from "@/app/actions"
 import { emptyState } from "@/lib/actionState"
+import { isFontFileName } from "@/lib/fontMeta"
 
 function UploadGlyph() {
 	return (
@@ -39,10 +40,59 @@ function sizeLabel(bytes: number) {
 	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+/** One entry per file, so the same name cannot be added twice. */
+function keyOf(file: File) {
+	return `${file.name}:${file.size}`
+}
+
 /** Three-step panel for adding a family from local files or a web link. */
 export default function AddFontForm() {
 	const [state, formAction, pending] = useActionState(addFontAction, emptyState)
-	const [picked, setPicked] = useState<Array<{ name: string; size: number }>>([])
+	const [picked, setPicked] = useState<File[]>([])
+	const [dragging, setDragging] = useState(false)
+	const inputRef = useRef<HTMLInputElement>(null)
+
+	/**
+	 * A file input replaces its selection on every pick, so the accumulated list
+	 * is kept in state and written back into the input through a DataTransfer.
+	 * That way several drops or several trips through the file dialog all end up
+	 * in one submission.
+	 */
+	function sync(files: File[]) {
+		setPicked(files)
+		const input = inputRef.current
+		if (!input || typeof DataTransfer === "undefined") return
+		const bag = new DataTransfer()
+		for (const file of files) bag.items.add(file)
+		input.files = bag.files
+	}
+
+	function add(incoming: FileList | File[] | null) {
+		const fresh = Array.from(incoming ?? []).filter((file) =>
+			isFontFileName(file.name),
+		)
+		if (fresh.length === 0) return
+		const seen = new Set(picked.map(keyOf))
+		const merged = [...picked]
+		for (const file of fresh) {
+			if (seen.has(keyOf(file))) continue
+			seen.add(keyOf(file))
+			merged.push(file)
+		}
+		sync(merged)
+	}
+
+	function remove(key: string) {
+		sync(picked.filter((file) => keyOf(file) !== key))
+	}
+
+	// Clear the queue once a family has been saved.
+	useEffect(() => {
+		if (state.ok) sync([])
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [state])
+
+	const totalBytes = picked.reduce((sum, file) => sum + file.size, 0)
 
 	return (
 		<form action={formAction} className="addPanel">
@@ -115,41 +165,87 @@ export default function AddFontForm() {
 					</div>
 
 					<div className="dropField">
-						<label className="dropZone">
+						<label
+							className="dropZone"
+							data-dragging={dragging ? "true" : undefined}
+							onDragOver={(event) => {
+								event.preventDefault()
+								setDragging(true)
+							}}
+							onDragLeave={() => setDragging(false)}
+							onDrop={(event) => {
+								// Handled here so a second drop adds to the queue instead of
+								// replacing what the input already holds.
+								event.preventDefault()
+								setDragging(false)
+								add(event.dataTransfer.files)
+							}}
+						>
 							<span className="dropIcon">
 								<UploadGlyph />
 							</span>
 							<span className="dropText">
-								<strong>Choose font files</strong>
+								<strong>
+									{picked.length > 0 ? "Add more font files" : "Choose font files"}
+								</strong>
 								<span>
-									.ttf .otf .ttc .woff .woff2 - select every weight and italic at
-									once
+									.ttf .otf .ttc .woff .woff2 - drop or pick as many times as you
+									like, they all stack up
 								</span>
 							</span>
 							<input
+								ref={inputRef}
 								type="file"
 								name="files"
 								multiple
 								accept=".ttf,.otf,.ttc,.woff,.woff2,font/*"
-								onChange={(event) =>
-									setPicked(
-										Array.from(event.target.files ?? []).map((file) => ({
-											name: file.name,
-											size: file.size,
-										})),
-									)
-								}
+								onChange={(event) => {
+									const chosen = Array.from(event.target.files ?? [])
+									// Re-merge, because the input now holds only the new pick.
+									const seen = new Set(picked.map(keyOf))
+									const merged = [...picked]
+									for (const file of chosen) {
+										if (!isFontFileName(file.name)) continue
+										if (seen.has(keyOf(file))) continue
+										seen.add(keyOf(file))
+										merged.push(file)
+									}
+									sync(merged)
+								}}
 							/>
 						</label>
 
 						{picked.length > 0 ? (
-							<div className="fileChips">
-								{picked.map((file) => (
-									<span className="fileChip" key={file.name}>
-										{file.name} <code>{sizeLabel(file.size)}</code>
+							<>
+								<div className="fileChips">
+									{picked.map((file) => (
+										<span className="fileChip" key={keyOf(file)}>
+											{file.name} <code>{sizeLabel(file.size)}</code>
+											<button
+												type="button"
+												aria-label={`Remove ${file.name}`}
+												title={`Remove ${file.name}`}
+												onClick={() => remove(keyOf(file))}
+											>
+												&times;
+											</button>
+										</span>
+									))}
+								</div>
+								<div className="fileTally">
+									<span>
+										{picked.length} {picked.length === 1 ? "file" : "files"} ready
+										- {sizeLabel(totalBytes)} in total
 									</span>
-								))}
-							</div>
+									<button
+										type="button"
+										className="fileClear"
+										onClick={() => sync([])}
+									>
+										Clear all
+									</button>
+								</div>
+							</>
 						) : null}
 					</div>
 

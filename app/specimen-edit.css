@@ -1,5 +1,5 @@
 /*
- * Editable specimens and the extra layout controls.
+ * Editable specimens, per-row preview settings and the extra layout controls.
  *
  * Loaded after globals.css so it can quietly override the plain specimen rules
  * without touching them.
@@ -71,7 +71,7 @@
 	min-width: 60px;
 }
 
-/* Style toggles: regular / bold / italic / bold italic previews. */
+/* Style toggles: regular / bold / italic previews. */
 .styleToggles {
 	display: inline-flex;
 	align-items: center;
@@ -112,11 +112,157 @@
 	font-weight: 700;
 }
 
-/* Applied to the html element by the controls so every specimen follows. */
+/* Page-wide toggles, set by the controls bar on the html element. */
 [data-weight="bold"] [data-specimen] {
 	font-weight: 700;
 }
 
 [data-slant="italic"] [data-specimen] {
 	font-style: italic;
+}
+
+/*
+ * Per-row settings. Each row carries its own bold / italic, leading and size,
+ * written on the row element by RowControls. The extra attribute in these
+ * selectors makes a row override win over the page-wide setting above, while
+ * untouched rows keep inheriting it.
+ */
+[data-font-row] [data-specimen] {
+	font-size: var(--row-size, var(--specimen-size));
+	line-height: var(--row-leading, var(--specimen-leading));
+}
+
+[data-font-row][data-weight="bold"] [data-specimen] {
+	font-weight: 700;
+}
+
+[data-font-row][data-weight="regular"] [data-specimen] {
+	font-weight: 400;
+}
+
+[data-font-row][data-slant="italic"] [data-specimen] {
+	font-style: italic;
+}
+
+[data-font-row][data-slant="normal"] [data-specimen] {
+	font-style: normal;
+}
+
+/* The settings strip inside a row header. */
+.rowControls {
+	display: inline-flex;
+	align-items: center;
+	gap: 14px;
+	flex: 1 1 auto;
+	min-width: 0;
+	opacity: 0.55;
+	transition: opacity var(--mid) var(--ease);
+}
+
+.row:hover .rowControls,
+.row:focus-within .rowControls {
+	opacity: 1;
+}
+
+.rowControls .rowField {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-width: 0;
+}
+
+.rowControls .rowField input[type="range"] {
+	width: clamp(56px, 9vw, 120px);
+	flex: 0 1 auto;
+}
+
+.rowControls .sizeValue,
+.rowControls .leadValue {
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--muted);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.rowReset {
+	padding: 3px 8px;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	background: transparent;
+	border: 1px solid var(--border);
+	color: var(--muted);
+	cursor: pointer;
+	transition:
+		color var(--fast) var(--ease),
+		border-color var(--fast) var(--ease);
+}
+
+.rowReset:hover {
+	color: var(--text);
+	border-color: var(--text);
+}
+
+@media (max-width: 860px) {
+	.rowControls {
+		flex-wrap: wrap;
+		gap: 8px;
+		opacity: 1;
+	}
+
+	.rowControls .rowField input[type="range"] {
+		width: 84px;
+	}
+}
+
+/* Removable file chips in the add-a-font panel. */
+.fileChip button {
+	margin-left: 8px;
+	padding: 0;
+	width: 16px;
+	height: 16px;
+	line-height: 1;
+	font-size: 13px;
+	background: transparent;
+	border: none;
+	color: var(--muted);
+	cursor: pointer;
+	transition: color var(--fast) var(--ease);
+}
+
+.fileChip button:hover {
+	color: var(--like);
+}
+
+.fileTally {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 10px;
+	font-size: 12px;
+	color: var(--muted);
+}
+
+.fileClear {
+	padding: 3px 9px;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	background: transparent;
+	border: 1px solid var(--border);
+	color: var(--muted);
+	cursor: pointer;
+}
+
+.fileClear:hover {
+	color: var(--text);
+	border-color: var(--text);
+}
+
+.dropZone[data-dragging="true"] {
+	border-color: var(--accent-border);
+	background: var(--accent-soft);
 }
