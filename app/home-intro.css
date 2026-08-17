@@ -1,0 +1,158 @@
+/* Home page purpose block. Google's OAuth branding review requires the home
+   page to state the app name, what the app does, and how sign-in is used. */
+
+.homeIntro {
+	border: 1px solid var(--border);
+	border-radius: 22px;
+	background: var(--surface);
+	padding: 26px 26px 22px;
+	margin: 0 0 22px;
+	position: relative;
+	overflow: hidden;
+	box-shadow:
+		inset 0 1px 0 rgba(255, 255, 255, 0.05),
+		0 18px 40px rgba(var(--ink), 0.07);
+	animation: riseIn var(--mid) var(--ease) both;
+}
+
+.homeIntro::before {
+	content: "";
+	position: absolute;
+	inset: 0 0 auto 0;
+	height: 3px;
+	background: linear-gradient(
+		90deg,
+		var(--text),
+		var(--accent-border),
+		transparent
+	);
+}
+
+.homeIntroTop {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+}
+
+.homeIntroTop .brandMark {
+	flex: none;
+	color: var(--text);
+}
+
+.homeTitle {
+	font-family: var(--display);
+	font-size: clamp(28px, 5vw, 42px);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 1.02;
+	margin: 0;
+	color: var(--text);
+}
+
+.homeTagline {
+	font-family: var(--ui);
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	color: var(--muted);
+	margin: 2px 0 0;
+}
+
+.homeLead {
+	font-family: var(--ui);
+	font-size: 16px;
+	line-height: 1.65;
+	color: var(--text);
+	margin: 16px 0 0;
+	max-width: 68ch;
+}
+
+.homePoints {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+	margin: 18px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.homePoints li {
+	font-family: var(--ui);
+	font-size: 14px;
+	line-height: 1.55;
+	color: var(--text);
+	background: var(--soft);
+	border: 1px solid var(--border);
+	border-radius: 14px;
+	padding: 12px 14px;
+	transition:
+		border-color var(--fast) var(--ease),
+		transform var(--fast) var(--ease);
+}
+
+.homePoints li:hover {
+	border-color: var(--muted);
+	transform: translateY(-2px);
+}
+
+.homePoints strong {
+	display: block;
+	font-family: var(--sys);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin-bottom: 4px;
+}
+
+.homeSignIn {
+	font-family: var(--ui);
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--muted);
+	margin: 18px 0 0;
+	padding-top: 14px;
+	border-top: 1px dashed var(--border);
+	max-width: 74ch;
+}
+
+.homeLinks {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin: 14px 0 0;
+}
+
+.homeLink {
+	font-family: var(--ui);
+	font-size: 13px;
+	font-weight: 700;
+	color: var(--text);
+	text-decoration: none;
+	background: var(--soft);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	padding: 9px 16px;
+	transition:
+		border-color var(--fast) var(--ease),
+		transform var(--fast) var(--ease),
+		background var(--fast) var(--ease);
+}
+
+.homeLink:hover {
+	border-color: var(--text);
+	background: var(--accent-soft);
+	transform: translateY(-2px);
+}
+
+.homeLink:active {
+	transform: scale(0.98);
+}
+
+@media (max-width: 640px) {
+	.homeIntro {
+		padding: 20px 18px 18px;
+		border-radius: 18px;
+	}
+}
