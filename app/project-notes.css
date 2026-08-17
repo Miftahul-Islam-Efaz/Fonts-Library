@@ -1,0 +1,293 @@
+/* Admin project notebook. Shares the raised card language of .addPanel. */
+
+.notePanel {
+	margin-top: 28px;
+}
+
+.notePanel .addTitle {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.noteGlyph {
+	width: 26px;
+	height: 26px;
+	flex: none;
+	color: var(--muted);
+}
+
+.noteList {
+	display: grid;
+	gap: 12px;
+}
+
+.noteCard {
+	border: 1px solid var(--border);
+	border-radius: 16px;
+	background: var(--soft);
+	padding: 14px 16px;
+	transition:
+		border-color var(--fast) var(--ease),
+		background var(--fast) var(--ease),
+		box-shadow var(--mid) var(--ease),
+		transform var(--fast) var(--ease);
+}
+
+.noteCard:hover {
+	border-color: var(--muted);
+	box-shadow: 0 10px 26px rgba(var(--ink), 0.07);
+}
+
+.noteCard[data-open="yes"] {
+	background: var(--surface);
+	border-color: var(--text);
+	box-shadow: 0 16px 34px rgba(var(--ink), 0.1);
+}
+
+.noteFace {
+	display: flex;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 16px;
+}
+
+.noteFaceText {
+	display: grid;
+	gap: 3px;
+	min-width: 0;
+}
+
+.noteFaceSide {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex: none;
+}
+
+.noteLabel {
+	font-family: var(--ui);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.noteValue {
+	font-family: var(--display);
+	font-size: 18px;
+	font-weight: 700;
+	color: var(--text);
+	word-break: break-all;
+}
+
+.noteValue[data-empty="yes"] {
+	font-weight: 500;
+	color: var(--muted);
+	font-style: italic;
+}
+
+.noteDetail {
+	font-family: var(--ui);
+	font-size: 13px;
+	color: var(--muted);
+	line-height: 1.5;
+}
+
+.noteTag {
+	font-family: var(--sys);
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--text);
+	background: var(--accent-soft);
+	border: 1px solid var(--accent-border);
+	border-radius: 999px;
+	padding: 4px 9px;
+	white-space: nowrap;
+}
+
+.noteEdit {
+	font-family: var(--ui);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--text);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: 999px;
+	padding: 7px 14px;
+	cursor: pointer;
+	transition:
+		border-color var(--fast) var(--ease),
+		transform var(--fast) var(--ease),
+		background var(--fast) var(--ease);
+}
+
+.noteEdit:hover {
+	border-color: var(--text);
+	transform: translateY(-1px);
+}
+
+.noteEdit:active {
+	transform: scale(0.97);
+}
+
+.noteEditor {
+	display: grid;
+	gap: 12px;
+	margin-top: 14px;
+	padding-top: 14px;
+	border-top: 1px dashed var(--border);
+	animation: riseIn var(--mid) var(--ease) both;
+}
+
+.noteGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+	gap: 12px;
+}
+
+.notePanel .field {
+	display: grid;
+	gap: 6px;
+}
+
+.notePanel .field > span {
+	font-family: var(--sys);
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.09em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.notePanel input[type="text"],
+.notePanel textarea {
+	width: 100%;
+	font-family: var(--ui);
+	font-size: 15px;
+	color: var(--text);
+	background: var(--canvas);
+	border: 1px solid var(--border);
+	border-radius: 12px;
+	padding: 12px 14px;
+	min-height: 46px;
+	box-shadow: inset 0 1px 2px rgba(var(--ink), 0.05);
+	transition:
+		border-color var(--fast) var(--ease),
+		box-shadow var(--fast) var(--ease);
+}
+
+.notePanel textarea {
+	min-height: 64px;
+	resize: vertical;
+	line-height: 1.55;
+}
+
+.notePanel input[type="text"]:hover,
+.notePanel textarea:hover {
+	border-color: var(--muted);
+}
+
+.notePanel input[type="text"]:focus,
+.notePanel textarea:focus {
+	outline: none;
+	border-color: var(--text);
+	box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.noteActions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.noteSave {
+	font-family: var(--ui);
+	font-size: 14px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	color: var(--canvas);
+	background:
+		linear-gradient(rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.08)),
+		var(--text);
+	border: 1px solid var(--text);
+	border-radius: 999px;
+	padding: 12px 22px;
+	cursor: pointer;
+	box-shadow: 0 10px 22px rgba(var(--ink), 0.16);
+	transition:
+		transform var(--fast) var(--ease),
+		box-shadow var(--mid) var(--ease),
+		opacity var(--fast) var(--ease);
+}
+
+.noteSave:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 14px 28px rgba(var(--ink), 0.2);
+}
+
+.noteSave:active {
+	transform: scale(0.98);
+}
+
+.noteSave[disabled] {
+	opacity: 0.62;
+	cursor: progress;
+	transform: none;
+}
+
+.noteDeleteForm {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.noteDelete {
+	font-family: var(--ui);
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: var(--warn-text);
+	background: var(--warn-soft);
+	border: 1px solid var(--warn-border);
+	border-radius: 999px;
+	padding: 8px 16px;
+	cursor: pointer;
+	transition:
+		transform var(--fast) var(--ease),
+		opacity var(--fast) var(--ease);
+}
+
+.noteDelete:hover {
+	transform: translateY(-1px);
+}
+
+.noteDelete:active {
+	transform: scale(0.97);
+}
+
+.noteDelete[disabled] {
+	opacity: 0.6;
+	cursor: progress;
+}
+
+.noteNew {
+	display: grid;
+	gap: 12px;
+}
+
+@media (max-width: 640px) {
+	.noteFace {
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.noteFaceSide {
+		width: 100%;
+		justify-content: space-between;
+	}
+}

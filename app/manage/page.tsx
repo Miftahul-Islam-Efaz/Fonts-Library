@@ -1,9 +1,11 @@
 import Link from "next/link"
 import AddFontForm from "@/components/AddFontForm"
 import FontAdminRow from "@/components/FontAdminRow"
+import ProjectNotes from "@/components/ProjectNotes"
 import SignInButton from "@/components/SignInButton"
 import { adminLockEnabled, isAdminUser } from "@/lib/auth"
 import { listAllFonts, listMyFonts } from "@/lib/fonts"
+import { listProjectNotes } from "@/lib/projectNotes"
 import { canWrite, isSupabaseConfigured } from "@/lib/supabase"
 import { getCurrentUser } from "@/lib/supabaseServer"
 
@@ -45,6 +47,7 @@ export default async function ManagePage() {
 		isAdmin && canWrite
 			? await listAllFonts("alphabetical")
 			: await listMyFonts(user.id, "alphabetical")
+	const notes = isAdmin && canWrite ? await listProjectNotes() : []
 
 	return (
 		<main>
@@ -82,6 +85,8 @@ export default async function ManagePage() {
 			</div>
 
 			<AddFontForm />
+
+			{isAdmin && canWrite ? <ProjectNotes notes={notes} /> : null}
 
 			<h2 style={{ marginTop: 32 }}>
 				{isAdmin ? "All families" : "Families you added"} ({fonts.length})

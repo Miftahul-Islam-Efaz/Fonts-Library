@@ -33,6 +33,7 @@ import {
 import "./globals.css"
 import "./user-menu.css"
 import "./add-font.css"
+import "./project-notes.css"
 
 /** Bitmap mark, kept for the favicon and social previews only. */
 export { LOGO_URL }
