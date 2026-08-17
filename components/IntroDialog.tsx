@@ -5,30 +5,46 @@ import { useCallback, useEffect, useState } from "react"
 import BrandMark from "@/components/BrandMark"
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/site"
 
+/** Remembered in both a cookie and localStorage, so it is dismissed for good. */
+export const INTRO_COOKIE = "fl_intro"
 const SEEN_KEY = "fl:introSeen"
+const ONE_YEAR = 60 * 60 * 24 * 365
+
+function remember() {
+	try {
+		document.cookie = `${INTRO_COOKIE}=1; path=/; max-age=${ONE_YEAR}; samesite=lax`
+	} catch {
+		// Ignore cookie errors.
+	}
+	try {
+		window.localStorage.setItem(SEEN_KEY, "1")
+	} catch {
+		// Private mode or blocked storage.
+	}
+}
 
 /**
  * Welcome dialog explaining what the app is and how Google sign-in is used.
  *
- * It renders open in the server HTML on purpose: the OAuth branding review and
- * crawlers both need to see this text without running JavaScript. Once a visitor
- * closes it the choice is remembered in localStorage, so it never returns.
+ * The server decides whether to render it at all, based on the cookie, so a
+ * returning visitor never sees a flash of it. It stays in the first-visit HTML
+ * on purpose: the OAuth branding review and crawlers need this text without
+ * running JavaScript.
  */
 export default function IntroDialog() {
 	const [open, setOpen] = useState(true)
 
 	const close = useCallback(() => {
 		setOpen(false)
-		try {
-			window.localStorage.setItem(SEEN_KEY, "1")
-		} catch {
-			// Private mode or blocked storage: the dialog simply shows again.
-		}
+		remember()
 	}, [])
 
 	useEffect(() => {
 		try {
-			if (window.localStorage.getItem(SEEN_KEY)) setOpen(false)
+			const seen =
+				window.localStorage.getItem(SEEN_KEY) ||
+				document.cookie.includes(`${INTRO_COOKIE}=1`)
+			if (seen) setOpen(false)
 		} catch {
 			// Ignore storage errors.
 		}

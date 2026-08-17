@@ -2,7 +2,7 @@ import Link from "next/link"
 import { cookies } from "next/headers"
 import FontHead from "@/components/FontHead"
 import FontRow from "@/components/FontRow"
-import IntroDialog from "@/components/IntroDialog"
+import IntroDialog, { INTRO_COOKIE } from "@/components/IntroDialog"
 import ThemeControls from "@/components/ThemeControls"
 import { myFavoriteIds } from "@/lib/favorites"
 import { listFonts } from "@/lib/fonts"
@@ -75,6 +75,8 @@ export default async function HomePage({
 	const size = store.has(SIZE_COOKIE)
 		? clampSize(store.get(SIZE_COOKIE)?.value)
 		: DEFAULT_SIZE
+	// Returning visitors never get the dialog in their HTML, so there is no flash.
+	const introSeen = store.get(INTRO_COOKIE)?.value === "1"
 
 	const [fonts, user, favorites] = await Promise.all([
 		listFonts(sort),
@@ -111,7 +113,7 @@ export default async function HomePage({
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
 			/>
 
-			<IntroDialog />
+			{introSeen ? null : <IntroDialog />}
 			<PurposeNote />
 
 			<ThemeControls theme={theme} align={align} size={size} searchable />
