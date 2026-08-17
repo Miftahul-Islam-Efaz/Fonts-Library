@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react"
 import { addFontAction } from "@/app/actions"
 import { emptyState } from "@/lib/actionState"
 import { isFontFileName } from "@/lib/fontMeta"
+import { prepareFace, savedPercent, sizeLabel } from "@/lib/uploadFont"
 
 function UploadGlyph() {
 	return (
@@ -34,13 +35,34 @@ function PlusGlyph() {
 	)
 }
 
-function sizeLabel(bytes: number) {
-	if (bytes < 1024) return `${bytes} B`
-	if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+function TickGlyph() {
+	return (
+		<svg viewBox="0 0 24 24" aria-hidden="true">
+			<path
+				d="M4 12.5l5 5L20 6.5"
+				fill="none"
+				stroke="currentColor"
+				strokeWidth="2.4"
+				strokeLinecap="round"
+				strokeLinejoin="round"
+			/>
+		</svg>
+	)
 }
 
-/** One entry per file, so the same name cannot be added twice. */
+type Entry = {
+	key: string
+	file: File
+	status: "uploading" | "ready" | "failed"
+	/** Filled in once Supabase has compressed and stored the file. */
+	path?: string
+	format?: string | null
+	before: number
+	after: number
+	converted?: boolean
+	note?: string
+}
+
 function keyOf(file: File) {
 	return `${file.name}:${file.size}`
 }
@@ -48,61 +70,130 @@ function keyOf(file: File) {
 /** Three-step panel for adding a family from local files or a web link. */
 export default function AddFontForm() {
 	const [state, formAction, pending] = useActionState(addFontAction, emptyState)
-	const [picked, setPicked] = useState<File[]>([])
+	const [queue, setQueue] = useState<Entry[]>([])
 	const [dragging, setDragging] = useState(false)
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	/**
-	 * A file input replaces its selection on every pick, so the accumulated list
-	 * is kept in state and written back into the input through a DataTransfer.
-	 * That way several drops or several trips through the file dialog all end up
-	 * in one submission.
-	 */
-	function sync(files: File[]) {
-		setPicked(files)
-		const input = inputRef.current
-		if (!input || typeof DataTransfer === "undefined") return
-		const bag = new DataTransfer()
-		for (const file of files) bag.items.add(file)
-		input.files = bag.files
+	const uploading = queue.some((entry) => entry.status === "uploading")
+	const ready = queue.filter((entry) => entry.status === "ready")
+	const busy = uploading || pending
+
+	function patch(key: string, changes: Partial<Entry>) {
+		setQueue((current) =>
+			current.map((entry) =>
+				entry.key === key ? { ...entry, ...changes } : entry,
+			),
+		)
 	}
 
-	function add(incoming: FileList | File[] | null) {
+	/** Sends one file to the Edge Function, which compresses and stores it. */
+	async function send(entry: Entry) {
+		patch(entry.key, { status: "uploading", note: undefined })
+		try {
+			const face = await prepareFace(entry.file)
+			patch(entry.key, {
+				status: "ready",
+				path: face.path,
+				format: face.format,
+				before: face.before,
+				after: face.after,
+				converted: face.converted,
+				note: face.note,
+			})
+		} catch (error) {
+			patch(entry.key, {
+				status: "failed",
+				note: error instanceof Error ? error.message : "Upload failed",
+			})
+		}
+	}
+
+	/**
+	 * Files are collected here rather than left in the input, so a second drop or
+	 * a second trip through the file dialog adds to the list instead of replacing
+	 * everything that was picked before.
+	 */
+	async function add(incoming: FileList | File[] | null) {
 		const fresh = Array.from(incoming ?? []).filter((file) =>
 			isFontFileName(file.name),
 		)
 		if (fresh.length === 0) return
-		const seen = new Set(picked.map(keyOf))
-		const merged = [...picked]
+
+		const seen = new Set(queue.map((entry) => entry.key))
+		const added: Entry[] = []
 		for (const file of fresh) {
-			if (seen.has(keyOf(file))) continue
-			seen.add(keyOf(file))
-			merged.push(file)
+			const key = keyOf(file)
+			if (seen.has(key)) continue
+			seen.add(key)
+			added.push({
+				key,
+				file,
+				status: "uploading",
+				before: file.size,
+				after: file.size,
+			})
 		}
-		sync(merged)
+		if (added.length === 0) return
+
+		setQueue((current) => [...current, ...added])
+		// Free the input so picking the same file again still fires a change event.
+		if (inputRef.current) inputRef.current.value = ""
+
+		// One at a time keeps the connection and the log readable.
+		for (const entry of added) await send(entry)
 	}
 
 	function remove(key: string) {
-		sync(picked.filter((file) => keyOf(file) !== key))
+		setQueue((current) => current.filter((entry) => entry.key !== key))
 	}
 
-	// Clear the queue once a family has been saved.
+	function clearAll() {
+		setQueue([])
+	}
+
+	// The transfer happens in this tab, so warn before it is thrown away.
 	useEffect(() => {
-		if (state.ok) sync([])
-		// eslint-disable-next-line react-hooks/exhaustive-deps
+		if (!busy) return
+		function hold(event: BeforeUnloadEvent) {
+			event.preventDefault()
+			event.returnValue = ""
+		}
+		window.addEventListener("beforeunload", hold)
+		return () => window.removeEventListener("beforeunload", hold)
+	}, [busy])
+
+	// Clear the queue once the family is saved.
+	useEffect(() => {
+		if (state.ok) setQueue([])
 	}, [state])
 
-	const totalBytes = picked.reduce((sum, file) => sum + file.size, 0)
+	const before = ready.reduce((sum, entry) => sum + entry.before, 0)
+	const after = ready.reduce((sum, entry) => sum + entry.after, 0)
+	const saved = savedPercent(before, after)
+	const doneCount = queue.filter((entry) => entry.status !== "uploading").length
 
 	return (
 		<form action={formAction} className="addPanel">
+			<input
+				type="hidden"
+				name="prepared"
+				value={JSON.stringify(
+					ready.map((entry) => ({
+						path: entry.path,
+						name: entry.file.name,
+						format: entry.format ?? null,
+					})),
+				)}
+			/>
+
 			<div className="addPanelHead">
 				<div>
 					<span className="addEyebrow">Add a font</span>
 					<h2 className="addTitle">Bring a family into the library</h2>
 					<p className="addHint">
-						Upload the files you downloaded, or paste a stylesheet link. Previews
-						are generated for every weight and italic you provide.
+						Upload the files you downloaded, or paste a stylesheet link. Every
+						.ttf and .otf is compressed to WOFF2 on Supabase as it arrives, so
+						storage stays small and previews load fast.
 					</p>
 				</div>
 				<div className="addSteps">
@@ -117,6 +208,22 @@ export default function AddFontForm() {
 					</span>
 				</div>
 			</div>
+
+			{state.message ? (
+				<div
+					className={state.ok ? "addBanner good" : "addBanner bad"}
+					role="status"
+					aria-live="polite"
+				>
+					<span className="addBannerIcon">
+						{state.ok ? <TickGlyph /> : "!"}
+					</span>
+					<span>
+						<strong>{state.ok ? "Saved to the library" : "Not saved"}</strong>
+						<span>{state.message}</span>
+					</span>
+				</div>
+			) : null}
 
 			<div className="addBody">
 				<section className="addSection">
@@ -174,11 +281,9 @@ export default function AddFontForm() {
 							}}
 							onDragLeave={() => setDragging(false)}
 							onDrop={(event) => {
-								// Handled here so a second drop adds to the queue instead of
-								// replacing what the input already holds.
 								event.preventDefault()
 								setDragging(false)
-								add(event.dataTransfer.files)
+								void add(event.dataTransfer.files)
 							}}
 						>
 							<span className="dropIcon">
@@ -186,61 +291,75 @@ export default function AddFontForm() {
 							</span>
 							<span className="dropText">
 								<strong>
-									{picked.length > 0 ? "Add more font files" : "Choose font files"}
+									{queue.length > 0 ? "Add more font files" : "Choose font files"}
 								</strong>
 								<span>
 									.ttf .otf .ttc .woff .woff2 - drop or pick as many times as you
-									like, they all stack up
+									like, every batch stacks up
 								</span>
 							</span>
 							<input
 								ref={inputRef}
 								type="file"
-								name="files"
 								multiple
 								accept=".ttf,.otf,.ttc,.woff,.woff2,font/*"
-								onChange={(event) => {
-									const chosen = Array.from(event.target.files ?? [])
-									// Re-merge, because the input now holds only the new pick.
-									const seen = new Set(picked.map(keyOf))
-									const merged = [...picked]
-									for (const file of chosen) {
-										if (!isFontFileName(file.name)) continue
-										if (seen.has(keyOf(file))) continue
-										seen.add(keyOf(file))
-										merged.push(file)
-									}
-									sync(merged)
-								}}
+								onChange={(event) => void add(event.target.files)}
 							/>
 						</label>
 
-						{picked.length > 0 ? (
+						{queue.length > 0 ? (
 							<>
 								<div className="fileChips">
-									{picked.map((file) => (
-										<span className="fileChip" key={keyOf(file)}>
-											{file.name} <code>{sizeLabel(file.size)}</code>
+									{queue.map((entry) => (
+										<span
+											className="fileChip"
+											key={entry.key}
+											data-status={entry.status}
+										>
+											{entry.file.name}{" "}
+											{entry.status === "uploading" ? (
+												<code>compressing on Supabase...</code>
+											) : entry.status === "failed" ? (
+												<code>{entry.note ?? "failed"}</code>
+											) : entry.converted ? (
+												<code>
+													WOFF2 {sizeLabel(entry.after)} -{" "}
+													{savedPercent(entry.before, entry.after)}% smaller
+												</code>
+											) : (
+												<code>
+													{sizeLabel(entry.after)}
+													{entry.note ? ` - ${entry.note}` : ""}
+												</code>
+											)}
+											{entry.status === "failed" ? (
+												<button type="button" onClick={() => void send(entry)}>
+													Retry
+												</button>
+											) : null}
 											<button
 												type="button"
-												aria-label={`Remove ${file.name}`}
-												title={`Remove ${file.name}`}
-												onClick={() => remove(keyOf(file))}
+												aria-label={`Remove ${entry.file.name}`}
+												title={`Remove ${entry.file.name}`}
+												onClick={() => remove(entry.key)}
 											>
 												&times;
 											</button>
 										</span>
 									))}
 								</div>
-								<div className="fileTally">
+
+								<div className="fileTally" aria-live="polite">
 									<span>
-										{picked.length} {picked.length === 1 ? "file" : "files"} ready
-										- {sizeLabel(totalBytes)} in total
+										{uploading
+											? `Uploading and compressing ${doneCount + 1} of ${queue.length} - keep this tab open`
+											: `${ready.length} ${ready.length === 1 ? "file" : "files"} stored - ${sizeLabel(after)}${saved > 0 ? `, ${saved}% smaller than the ${sizeLabel(before)} you picked` : ""}`}
 									</span>
 									<button
 										type="button"
 										className="fileClear"
-										onClick={() => sync([])}
+										onClick={clearAll}
+										disabled={uploading}
 									>
 										Clear all
 									</button>
@@ -297,20 +416,21 @@ export default function AddFontForm() {
 			</div>
 
 			<div className="addFoot">
-				<button className="addSubmit" type="submit" disabled={pending}>
+				<button className="addSubmit" type="submit" disabled={busy}>
 					<PlusGlyph />
-					{pending ? "Saving..." : "Add to library"}
+					{pending
+						? "Saving..."
+						: uploading
+							? "Compressing..."
+							: "Add to library"}
 				</button>
 
-				{state.message ? (
-					<span className={state.ok ? "addStatus" : "addStatus bad"}>
-						{state.message}
-					</span>
-				) : null}
-
 				<p className="addFootNote">
-					Weights and italics are detected from file names and can be corrected
-					below. Keep each upload under about 4 MB.
+					Files go straight to Supabase, get compressed there and are stored
+					before you press Add, so large families are no longer limited by the
+					form. Keep the tab open until each file reads as stored - closing it
+					mid-upload cancels that file. Weights and italics are read from file
+					names and can be corrected below.
 				</p>
 			</div>
 		</form>

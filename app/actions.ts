@@ -109,6 +109,51 @@ function filesFrom(formData: FormData): File[] {
 		.filter((entry): entry is File => entry instanceof File && entry.size > 0)
 }
 
+/**
+ * Files that the compress-font Edge Function already compressed and stored.
+ * The browser sends only their storage paths, so nothing large travels through
+ * this action and the request-size limit no longer caps how many styles a
+ * family can have.
+ */
+type PreparedFace = { path: string; name: string; format: string | null }
+
+function preparedFrom(formData: FormData): PreparedFace[] {
+	const raw = text(formData, "prepared")
+	if (!raw) return []
+	try {
+		const parsed = JSON.parse(raw)
+		if (!Array.isArray(parsed)) return []
+		return parsed
+			.filter(
+				(entry): entry is PreparedFace =>
+					Boolean(entry) &&
+					typeof entry.path === "string" &&
+					entry.path.length > 0 &&
+					typeof entry.name === "string",
+			)
+			.map((entry) => ({
+				path: entry.path,
+				name: entry.name,
+				format: entry.format ?? cssFormat(entry.path),
+			}))
+	} catch {
+		return []
+	}
+}
+
+/** Turns a stored upload into a face row. */
+function preparedRow(fontId: string, face: PreparedFace) {
+	const meta = guessFaceMeta(face.name)
+	return {
+		font_id: fontId,
+		label: meta.label,
+		weight: meta.weight,
+		style: meta.style,
+		file_path: face.path,
+		format: face.format ?? cssFormat(face.path),
+	}
+}
+
 /** Add a family from uploaded files, a stylesheet link, or a direct font file URL. */
 export async function addFontAction(
 	_prev: ActionState,
@@ -119,15 +164,18 @@ export async function addFontAction(
 		const client = writeClient()
 
 		const files = filesFrom(formData)
+		const prepared = preparedFrom(formData)
+		const uploadCount = files.length + prepared.length
 		const url = text(formData, "url")
-		const name = text(formData, "name") || (files[0]?.name ?? "")
+		const name =
+			text(formData, "name") || files[0]?.name || prepared[0]?.name || ""
 		if (!name) return fail("Give the family a name.")
-		if (files.length === 0 && !url) {
+		if (uploadCount === 0 && !url) {
 			return fail("Add at least one font file, or paste a font URL.")
 		}
 
 		const isDirectFile = Boolean(url) && isFontFileName(url)
-		const sourceType = files.length > 0 ? "file" : "link"
+		const sourceType = uploadCount > 0 ? "file" : "link"
 		const slug = await uniqueSlug(name)
 		const key = dedupeKey(name)
 
@@ -171,6 +219,10 @@ export async function addFontAction(
 
 		const faces: Array<Record<string, unknown>> = []
 
+		for (const face of prepared) {
+			faces.push(preparedRow(font.id, face))
+		}
+
 		for (const file of files) {
 			const meta = guessFaceMeta(file.name)
 			const uploaded = await uploadFace(slug, font.id, file)
@@ -201,12 +253,18 @@ export async function addFontAction(
 			if (faceError) return fail(faceError.message)
 		}
 
+		const styleCount = faces.length
+		const styleNote =
+			styleCount > 0
+				? ` ${styleCount} ${styleCount === 1 ? "style is" : "styles are"} ready to preview.`
+				: ""
+
 		refresh(font.slug)
 		return {
 			ok: true,
 			message: isPublic
-				? `${name} added to the public library and to your space.`
-				: `${taken?.name ?? name} is already in the public library, so this copy was saved to your space only.`,
+				? `${name} added to the public library and to your space.${styleNote}`
+				: `${taken?.name ?? name} is already in the public library, so this copy was saved to your space only.${styleNote}`,
 		}
 	} catch (error) {
 		return fail(error instanceof Error ? error.message : "Something went wrong.")
@@ -270,6 +328,11 @@ export async function updateFontAction(
 				.from("font_faces")
 				.update({ weight, style, label: faceLabel(weight, style) })
 				.eq("id", faceId)
+		}
+
+		// Styles already compressed and stored by the Edge Function.
+		for (const face of preparedFrom(formData)) {
+			await client.from("font_faces").insert(preparedRow(id, face))
 		}
 
 		// Extra files appended to this family.

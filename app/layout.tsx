@@ -41,6 +41,7 @@ import "./user-menu.css"
 import "./add-font.css"
 import "./project-notes.css"
 import "./home-intro.css"
+import "./upload-status.css"
 import "./specimen-edit.css"
 
 /** Bitmap mark, kept for the favicon and social previews only. */
