@@ -32,7 +32,7 @@ function remember() {
  * running JavaScript.
  */
 export default function IntroDialog() {
-	const [open, setOpen] = useState(true)
+	const [open, setOpen] = useState(false)
 
 	const close = useCallback(() => {
 		setOpen(false)
@@ -44,7 +44,7 @@ export default function IntroDialog() {
 			const seen =
 				window.localStorage.getItem(SEEN_KEY) ||
 				document.cookie.includes(`${INTRO_COOKIE}=1`)
-			if (seen) setOpen(false)
+			if (!seen) setOpen(true)
 		} catch {
 			// Ignore storage errors.
 		}

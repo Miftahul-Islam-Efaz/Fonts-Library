@@ -6,6 +6,7 @@ import IntroDialog, { INTRO_COOKIE } from "@/components/IntroDialog"
 import ThemeControls from "@/components/ThemeControls"
 import { myFavoriteIds } from "@/lib/favorites"
 import { listFonts } from "@/lib/fonts"
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/site"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import { getCurrentUser } from "@/lib/supabaseServer"
 import {
@@ -32,17 +33,33 @@ export const metadata = {
 	alternates: { canonical: "/" },
 }
 
-/** One line that always stays on the page, even after the dialog is dismissed. */
-function PurposeNote() {
+/**
+ * Visible app name and purpose, in the page's own HTML.
+ *
+ * Google's OAuth branding review checks the home page for the exact app name
+ * from the consent screen and for a plain explanation of what the app does, so
+ * this is a real <h1> and is never hidden behind the welcome dialog.
+ */
+function HomeIntro() {
 	return (
-		<p className="homeNote">
-			<strong>Fonts Library</strong> keeps the typefaces you love in one place:
-			upload font files or paste a stylesheet link from anywhere, and every family
-			gets an organised entry with a live preview. Fonts you add are saved to your
-			personal space and also join this public community library. Browsing needs
-			no account. <Link href="/about">About</Link> ·{" "}
-			<Link href="/privacy">Privacy</Link>
-		</p>
+		<header className="homeHead">
+			<h1 className="homeH1">{SITE_NAME}</h1>
+			<p className="homeSub">{SITE_TAGLINE}</p>
+			<p className="homeLead">
+				<strong>{SITE_NAME}</strong> is a free web app for collecting typefaces.
+				Upload font files from your computer or paste a stylesheet link from
+				anywhere, and every family gets an organised entry with a live preview you
+				can type your own text into, in regular, bold and italic. Fonts you add
+				are saved to your personal space and also join the public community
+				library below.
+			</p>
+			<p className="homeFine">
+				Browsing needs no account. Google sign-in is used only to keep your own
+				space and favourites separate, and the app receives your name, email
+				address and profile picture only. <Link href="/about">About</Link> ·{" "}
+				<Link href="/privacy">Privacy policy</Link>
+			</p>
+		</header>
 	)
 }
 
@@ -54,7 +71,7 @@ export default async function HomePage({
 	if (!isSupabaseConfigured) {
 		return (
 			<main>
-				<PurposeNote />
+				<HomeIntro />
 				<div className="notice error">
 					<strong>Supabase is not connected yet.</strong> Copy{" "}
 					<code>.env.example</code> to <code>.env.local</code> and fill in your
@@ -75,7 +92,7 @@ export default async function HomePage({
 	const size = store.has(SIZE_COOKIE)
 		? clampSize(store.get(SIZE_COOKIE)?.value)
 		: DEFAULT_SIZE
-	// Returning visitors never get the dialog in their HTML, so there is no flash.
+	// Returning visitors are not sent the dialog component at all.
 	const introSeen = store.get(INTRO_COOKIE)?.value === "1"
 
 	const [fonts, user, favorites] = await Promise.all([
@@ -113,8 +130,8 @@ export default async function HomePage({
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
 			/>
 
+			<HomeIntro />
 			{introSeen ? null : <IntroDialog />}
-			<PurposeNote />
 
 			<ThemeControls theme={theme} align={align} size={size} searchable />
 
