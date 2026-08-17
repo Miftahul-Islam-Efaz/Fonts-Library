@@ -1,25 +1,40 @@
-/* Home page purpose block. Google's OAuth branding review requires the home
-   page to state the app name, what the app does, and how sign-in is used. */
+/* Welcome dialog plus the one-line purpose note that always stays on the page.
+   Google's OAuth branding review needs the purpose and the sign-in disclosure
+   present in the home page HTML. */
 
-.homeIntro {
+.introBackdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 60;
+	display: grid;
+	place-items: center;
+	padding: 20px;
+	background: rgba(var(--ink), 0.42);
+	backdrop-filter: blur(6px);
+	animation: fadeIn var(--mid) var(--ease) both;
+}
+
+.introModal {
+	position: relative;
+	width: min(560px, 100%);
+	max-height: calc(100vh - 40px);
+	overflow-y: auto;
 	border: 1px solid var(--border);
 	border-radius: 22px;
 	background: var(--surface);
-	padding: 26px 26px 22px;
-	margin: 0 0 22px;
-	position: relative;
-	overflow: hidden;
+	padding: 28px 28px 24px;
 	box-shadow:
-		inset 0 1px 0 rgba(255, 255, 255, 0.05),
-		0 18px 40px rgba(var(--ink), 0.07);
+		inset 0 1px 0 rgba(255, 255, 255, 0.06),
+		0 30px 70px rgba(0, 0, 0, 0.35);
 	animation: riseIn var(--mid) var(--ease) both;
 }
 
-.homeIntro::before {
+.introModal::before {
 	content: "";
 	position: absolute;
 	inset: 0 0 auto 0;
 	height: 3px;
+	border-radius: 22px 22px 0 0;
 	background: linear-gradient(
 		90deg,
 		var(--text),
@@ -28,103 +43,126 @@
 	);
 }
 
-.homeIntroTop {
-	display: flex;
-	align-items: center;
-	gap: 14px;
-}
-
-.homeIntroTop .brandMark {
-	flex: none;
-	color: var(--text);
-}
-
-.homeTitle {
-	font-family: var(--display);
-	font-size: clamp(28px, 5vw, 42px);
-	font-weight: 800;
-	letter-spacing: -0.02em;
-	line-height: 1.02;
-	margin: 0;
-	color: var(--text);
-}
-
-.homeTagline {
-	font-family: var(--ui);
-	font-size: 13px;
-	font-weight: 700;
-	letter-spacing: 0.03em;
-	color: var(--muted);
-	margin: 2px 0 0;
-}
-
-.homeLead {
-	font-family: var(--ui);
-	font-size: 16px;
-	line-height: 1.65;
-	color: var(--text);
-	margin: 16px 0 0;
-	max-width: 68ch;
-}
-
-.homePoints {
+.introClose {
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	width: 34px;
+	height: 34px;
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-	gap: 12px;
-	margin: 18px 0 0;
-	padding: 0;
-	list-style: none;
-}
-
-.homePoints li {
-	font-family: var(--ui);
-	font-size: 14px;
-	line-height: 1.55;
-	color: var(--text);
+	place-items: center;
+	color: var(--muted);
 	background: var(--soft);
 	border: 1px solid var(--border);
-	border-radius: 14px;
-	padding: 12px 14px;
+	border-radius: 999px;
+	cursor: pointer;
 	transition:
+		color var(--fast) var(--ease),
 		border-color var(--fast) var(--ease),
 		transform var(--fast) var(--ease);
 }
 
-.homePoints li:hover {
-	border-color: var(--muted);
-	transform: translateY(-2px);
+.introClose svg {
+	width: 16px;
+	height: 16px;
 }
 
-.homePoints strong {
-	display: block;
-	font-family: var(--sys);
-	font-size: 11px;
+.introClose:hover {
+	color: var(--text);
+	border-color: var(--text);
+	transform: rotate(90deg);
+}
+
+.introClose:active {
+	transform: scale(0.92);
+}
+
+.introTop {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-right: 40px;
+}
+
+.introTop .brandMark {
+	flex: none;
+	color: var(--text);
+}
+
+.introTitle {
+	font-family: var(--display);
+	font-size: clamp(24px, 4vw, 32px);
+	font-weight: 800;
+	letter-spacing: -0.02em;
+	line-height: 1.05;
+	margin: 0;
+	color: var(--text);
+}
+
+.introTagline {
+	font-family: var(--ui);
+	font-size: 12px;
 	font-weight: 700;
-	letter-spacing: 0.09em;
-	text-transform: uppercase;
+	letter-spacing: 0.03em;
 	color: var(--muted);
-	margin-bottom: 4px;
+	margin: 3px 0 0;
 }
 
-.homeSignIn {
+.introText {
+	font-family: var(--ui);
+	font-size: 15px;
+	line-height: 1.65;
+	color: var(--text);
+	margin: 18px 0 0;
+}
+
+.introFine {
 	font-family: var(--ui);
 	font-size: 13px;
 	line-height: 1.6;
 	color: var(--muted);
-	margin: 18px 0 0;
+	margin: 14px 0 0;
 	padding-top: 14px;
 	border-top: 1px dashed var(--border);
-	max-width: 74ch;
 }
 
-.homeLinks {
+.introActions {
 	display: flex;
+	align-items: center;
 	flex-wrap: wrap;
-	gap: 8px;
-	margin: 14px 0 0;
+	gap: 10px;
+	margin-top: 20px;
 }
 
-.homeLink {
+.introStart {
+	font-family: var(--ui);
+	font-size: 14px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	color: var(--canvas);
+	background:
+		linear-gradient(rgba(255, 255, 255, 0.14), rgba(0, 0, 0, 0.08)),
+		var(--text);
+	border: 1px solid var(--text);
+	border-radius: 999px;
+	padding: 12px 24px;
+	cursor: pointer;
+	box-shadow: 0 12px 26px rgba(var(--ink), 0.18);
+	transition:
+		transform var(--fast) var(--ease),
+		box-shadow var(--mid) var(--ease);
+}
+
+.introStart:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 16px 32px rgba(var(--ink), 0.22);
+}
+
+.introStart:active {
+	transform: scale(0.98);
+}
+
+.introLink {
 	font-family: var(--ui);
 	font-size: 13px;
 	font-weight: 700;
@@ -133,26 +171,44 @@
 	background: var(--soft);
 	border: 1px solid var(--border);
 	border-radius: 999px;
-	padding: 9px 16px;
+	padding: 10px 18px;
 	transition:
 		border-color var(--fast) var(--ease),
-		transform var(--fast) var(--ease),
-		background var(--fast) var(--ease);
+		background var(--fast) var(--ease),
+		transform var(--fast) var(--ease);
 }
 
-.homeLink:hover {
+.introLink:hover {
 	border-color: var(--text);
 	background: var(--accent-soft);
 	transform: translateY(-2px);
 }
 
-.homeLink:active {
-	transform: scale(0.98);
+/* Always-visible summary line under the header. */
+.homeNote {
+	font-family: var(--ui);
+	font-size: 13.5px;
+	line-height: 1.6;
+	color: var(--muted);
+	margin: 0 0 18px;
+	max-width: 80ch;
+}
+
+.homeNote strong {
+	color: var(--text);
+	font-weight: 700;
+}
+
+.homeNote a {
+	color: var(--text);
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	text-decoration-thickness: 1px;
 }
 
 @media (max-width: 640px) {
-	.homeIntro {
-		padding: 20px 18px 18px;
+	.introModal {
+		padding: 24px 18px 20px;
 		border-radius: 18px;
 	}
 }
