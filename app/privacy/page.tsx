@@ -5,7 +5,7 @@ import { AUTHOR, SITE_NAME, SITE_URL } from "@/lib/site"
 export const metadata: Metadata = {
 	title: "Privacy policy",
 	description:
-		"How Fonts Library handles your Google account data, the fonts you upload, cookies and analytics, and how to delete your data.",
+		"How Type Archive handles your Google account data, the fonts you upload, cookies and analytics, and how to delete your data.",
 	alternates: { canonical: "/privacy" },
 }
 

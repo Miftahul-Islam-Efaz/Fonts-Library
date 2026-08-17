@@ -3,6 +3,9 @@
  *   - mode  (light | dark): the base canvas.
  *   - theme (a tint): the ink colour. In the dark base only the text and the
  *     highlighted parts take the tint; the canvas stays black.
+ *
+ * Specimen layout adds two more: size and leading, both stored as integers so
+ * they survive a cookie round trip cleanly.
  */
 export type ModeId = "light" | "dark"
 export type ThemeId = "light" | "butter" | "rose" | "mint"
@@ -13,6 +16,7 @@ export const MODE_COOKIE = "fl_mode"
 export const THEME_COOKIE = "fl_theme"
 export const ALIGN_COOKIE = "fl_align"
 export const SIZE_COOKIE = "fl_size"
+export const LEADING_COOKIE = "fl_leading"
 
 export const DEFAULT_MODE: ModeId = "light"
 export const DEFAULT_THEME: ThemeId = "light"
@@ -21,6 +25,11 @@ export const DEFAULT_SORT: SortId = "popular"
 export const DEFAULT_SIZE = 44
 export const MIN_SIZE = 12
 export const MAX_SIZE = 160
+
+/** Leading is a percentage of the font size: 105 means line-height: 1.05. */
+export const DEFAULT_LEADING = 105
+export const MIN_LEADING = 70
+export const MAX_LEADING = 220
 
 export const MODES: Array<{ id: ModeId; label: string }> = [
 	{ id: "light", label: "Light" },
@@ -67,4 +76,10 @@ export function clampSize(value: unknown): number {
 	const size = Number(value)
 	if (!Number.isFinite(size)) return DEFAULT_SIZE
 	return Math.min(MAX_SIZE, Math.max(MIN_SIZE, Math.round(size)))
+}
+
+export function clampLeading(value: unknown): number {
+	const leading = Number(value)
+	if (!Number.isFinite(leading)) return DEFAULT_LEADING
+	return Math.min(MAX_LEADING, Math.max(MIN_LEADING, Math.round(leading)))
 }

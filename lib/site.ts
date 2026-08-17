@@ -8,15 +8,27 @@
 export const SITE_URL =
 	process.env.NEXT_PUBLIC_SITE_URL ?? "https://fonts.miftahulislamefaz.xyz"
 
-export const SITE_NAME = "Fonts Library"
+export const SITE_NAME = "Type Archive"
 
-export const SITE_TAGLINE = "Your fonts, organised and previewed in one place"
+export const SITE_TAGLINE =
+	"Free fonts for designers and developers, organised in your own space"
 
 export const SITE_DESCRIPTION =
-	"Fonts Library is a personal and community type library. Save fonts from anywhere - local .ttf and .otf files or web stylesheet links - keep them organised in your own space, and preview every family in regular, bold, italic and bold italic with your own text."
+	"Type Archive is a free font library and personal type space for designers, developers and anyone who cares about type. Save high quality free fonts from anywhere - upload .ttf, .otf and .woff files or paste a stylesheet link - keep them organised in your own private space, preview every family in regular, bold and italic with your own text, and discover what the community has collected."
+
+/** Short line used for social cards and AI summaries. */
+export const SITE_SUMMARY =
+	"A free font library where designers and developers collect, organise and preview high quality fonts in their own personal space."
 
 export const LOGO_URL =
 	"https://mvajwthjkbwfrzuyvuxl.supabase.co/storage/v1/object/public/Logo/Fonts_library_faviconlogo.png"
+
+/** Wide social preview card, used for Open Graph, X, WhatsApp, Messenger etc. */
+export const COVER_URL =
+	"https://mvajwthjkbwfrzuyvuxl.supabase.co/storage/v1/object/public/Logo/cover.jpg"
+
+export const COVER_WIDTH = 1200
+export const COVER_HEIGHT = 630
 
 /** Author and owner of the product. */
 export const AUTHOR = {
@@ -62,18 +74,48 @@ export const SOCIALS = [
 	},
 ]
 
+/**
+ * Search intent, roughly ordered from the strongest commercial terms to the
+ * brand terms. Free, designer and developer intent leads, because that is what
+ * the library is: free families, previewed in a personal space.
+ */
 export const KEYWORDS = [
-	"fonts library",
+	"free fonts",
+	"free fonts for designers",
+	"free fonts for developers",
+	"free font library",
+	"high quality free fonts",
+	"personal font library",
+	"font library online",
 	"font manager",
-	"font collection",
-	"type specimen",
-	"font preview tool",
+	"font organiser",
 	"save fonts online",
-	"ttf otf woff manager",
-	"font pairing",
+	"font preview tool",
+	"type specimen tool",
+	"test fonts with your own text",
+	"ttf otf woff font manager",
+	"upload font and preview",
+	"web font preview",
+	"font pairing tool",
 	"typography library",
+	"typeface collection",
+	"fonts for web design",
+	"fonts for UI design",
+	"fonts for branding",
+	"Type Archive",
 	"Miftahul Islam Efaz",
 	"Webigns",
+]
+
+/** Who the product is for. Reused in schema.org audience entries. */
+export const AUDIENCES = [
+	"Graphic designers",
+	"Web designers",
+	"UI and UX designers",
+	"Web developers",
+	"Brand and identity designers",
+	"Typographers",
+	"Students and hobbyists",
 ]
 
 const PERSON_ID = `${AUTHOR.site}#person`
@@ -103,6 +145,7 @@ export function siteGraph() {
 				},
 				knowsAbout: [
 					"Typography",
+					"Free fonts",
 					"Web development",
 					"Next.js",
 					"Supabase",
@@ -115,11 +158,23 @@ export function siteGraph() {
 				"@id": SITE_ID,
 				url: `${SITE_URL}/`,
 				name: SITE_NAME,
-				alternateName: "Fonts Library by Miftahul Islam Efaz",
+				alternateName: "Type Archive by Miftahul Islam Efaz",
 				description: SITE_DESCRIPTION,
 				inLanguage: "en",
+				image: COVER_URL,
+				keywords: KEYWORDS.join(", "),
+				isAccessibleForFree: true,
 				publisher: { "@id": PERSON_ID },
 				creator: { "@id": PERSON_ID },
+				about: [
+					{ "@type": "Thing", name: "Typography" },
+					{ "@type": "Thing", name: "Free fonts" },
+					{ "@type": "Thing", name: "Typeface previews" },
+				],
+				audience: AUDIENCES.map((audienceType) => ({
+					"@type": "Audience",
+					audienceType,
+				})),
 				potentialAction: {
 					"@type": "SearchAction",
 					target: {
@@ -135,17 +190,28 @@ export function siteGraph() {
 				name: SITE_NAME,
 				url: `${SITE_URL}/`,
 				applicationCategory: "DesignApplication",
+				applicationSubCategory: "Font library and type specimen tool",
 				operatingSystem: "Any modern browser",
 				browserRequirements: "Requires JavaScript for previews",
 				description: SITE_DESCRIPTION,
-				image: LOGO_URL,
+				image: COVER_URL,
+				screenshot: COVER_URL,
+				keywords: KEYWORDS.join(", "),
+				isAccessibleForFree: true,
+				inLanguage: "en",
+				audience: AUDIENCES.map((audienceType) => ({
+					"@type": "Audience",
+					audienceType,
+				})),
 				author: { "@id": PERSON_ID },
 				creator: { "@id": PERSON_ID },
 				isPartOf: { "@id": SITE_ID },
 				featureList: [
+					"Free to use, with every family free to collect",
 					"Upload local font files or add web stylesheet links",
 					"Live previews in regular, bold, italic and bold italic",
-					"Custom preview text and adjustable specimen size",
+					"Type directly on any specimen to test your own words",
+					"Adjustable specimen size, leading and alignment",
 					"Private personal space plus a shared public library",
 					"Favourites and automatic font pairing suggestions",
 				],
@@ -153,6 +219,7 @@ export function siteGraph() {
 					"@type": "Offer",
 					price: "0",
 					priceCurrency: "USD",
+					availability: "https://schema.org/InStock",
 				},
 			},
 		],

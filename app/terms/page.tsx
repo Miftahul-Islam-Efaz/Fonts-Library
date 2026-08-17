@@ -5,7 +5,7 @@ import { AUTHOR, SITE_NAME, SITE_URL } from "@/lib/site"
 export const metadata: Metadata = {
 	title: "Terms of service",
 	description:
-		"The terms for using Fonts Library: what the service is, what you may upload, font licensing responsibilities, account rules and how the library is moderated.",
+		"The terms for using Type Archive: what the service is, what you may upload, font licensing responsibilities, account rules and how the library is moderated.",
 	alternates: { canonical: "/terms" },
 }
 

@@ -1,15 +1,20 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { TEXT_EVENT } from "@/components/EditableSpecimen"
 import { DEFAULT_SAMPLE_TEXT } from "@/lib/fontMeta"
 import {
 	ALIGNMENTS,
 	ALIGN_COOKIE,
 	DEFAULT_ALIGN,
+	DEFAULT_LEADING,
 	DEFAULT_MODE,
 	DEFAULT_SIZE,
 	DEFAULT_THEME,
+	LEADING_COOKIE,
+	MAX_LEADING,
 	MAX_SIZE,
+	MIN_LEADING,
 	MIN_SIZE,
 	MODE_COOKIE,
 	SIZE_COOKIE,
@@ -28,18 +33,21 @@ function setCookie(name: string, value: string) {
 
 /**
  * Progressive enhancement only. The server already rendered the chosen base,
- * tint, alignment and size from cookies; this updates them live, filters the
- * visible list and remembers everything for the next visit.
+ * tint, alignment, size and leading from cookies; this updates them live,
+ * filters the visible list and remembers everything for the next visit.
  */
 export default function ThemeControls({
 	theme: initialTheme,
 	align: initialAlign,
 	size: initialSize,
+	leading: initialLeading = DEFAULT_LEADING,
 	searchable = false,
 }: {
 	theme: ThemeId
 	align: AlignId
 	size: number
+	/** Line height as a percentage of the font size. */
+	leading?: number
 	/** Show the search box and filter the rendered rows. */
 	searchable?: boolean
 }) {
@@ -47,6 +55,9 @@ export default function ThemeControls({
 	const [theme, setTheme] = useState<ThemeId>(initialTheme)
 	const [align, setAlign] = useState<AlignId>(initialAlign)
 	const [size, setSize] = useState(initialSize)
+	const [leading, setLeading] = useState(initialLeading)
+	const [bold, setBold] = useState(false)
+	const [italic, setItalic] = useState(false)
 	const [text, setText] = useState("")
 	const [query, setQuery] = useState("")
 
@@ -61,12 +72,23 @@ export default function ThemeControls({
 		if (stored) setText(stored)
 	}, [])
 
-	// Sample text: empty means each specimen shows its own family name.
+	// Typing directly on a specimen broadcasts here, so the box stays in sync.
+	useEffect(() => {
+		function follow(event: Event) {
+			setText((event as CustomEvent<string>).detail ?? "")
+		}
+		window.addEventListener(TEXT_EVENT, follow)
+		return () => window.removeEventListener(TEXT_EVENT, follow)
+	}, [])
+
+	// Sample text: empty means each specimen shows its own family name. The
+	// focused specimen is skipped so typing in place never loses the caret.
 	useEffect(() => {
 		const custom = text.trim()
 		for (const node of document.querySelectorAll<HTMLElement>(
 			"[data-specimen]",
 		)) {
+			if (node === document.activeElement) continue
 			node.textContent =
 				custom.length > 0
 					? text
@@ -118,11 +140,35 @@ export default function ThemeControls({
 		setCookie(SIZE_COOKIE, String(next))
 	}
 
+	function pickLeading(next: number) {
+		setLeading(next)
+		document.documentElement.style.setProperty(
+			"--specimen-leading",
+			String(next / 100),
+		)
+		setCookie(LEADING_COOKIE, String(next))
+	}
+
+	function pickBold(next: boolean) {
+		setBold(next)
+		if (next) document.documentElement.dataset.weight = "bold"
+		else delete document.documentElement.dataset.weight
+	}
+
+	function pickItalic(next: boolean) {
+		setItalic(next)
+		if (next) document.documentElement.dataset.slant = "italic"
+		else delete document.documentElement.dataset.slant
+	}
+
 	function resetAll() {
 		pickMode(DEFAULT_MODE)
 		pickTheme(DEFAULT_THEME)
 		pickAlign(DEFAULT_ALIGN)
 		pickSize(DEFAULT_SIZE)
+		pickLeading(DEFAULT_LEADING)
+		pickBold(false)
+		pickItalic(false)
 		setText("")
 		setQuery("")
 	}
@@ -147,8 +193,39 @@ export default function ThemeControls({
 				<span />
 			)}
 
-			<span />
-			<span />
+			<span className="styleToggles">
+				<button
+					type="button"
+					className="styleToggle boldToggle"
+					aria-pressed={bold}
+					title="Preview every family in bold"
+					onClick={() => pickBold(!bold)}
+				>
+					Bold
+				</button>
+				<button
+					type="button"
+					className="styleToggle italicToggle"
+					aria-pressed={italic}
+					title="Preview every family in italic"
+					onClick={() => pickItalic(!italic)}
+				>
+					Italic
+				</button>
+			</span>
+
+			<span className="leadField">
+				<span className="leadValue">Leading {leading}%</span>
+				<input
+					type="range"
+					min={MIN_LEADING}
+					max={MAX_LEADING}
+					value={leading}
+					aria-label="Preview leading"
+					onChange={(event) => pickLeading(Number(event.target.value))}
+					suppressHydrationWarning
+				/>
+			</span>
 
 			<span className="sizeField">
 				<span className="sizeValue">{size}px</span>
@@ -167,7 +244,7 @@ export default function ThemeControls({
 				type="text"
 				value={text}
 				aria-label="Your sample text"
-				placeholder="Your text"
+				placeholder="Your text, or click any preview"
 				onChange={(event) => setText(event.target.value)}
 				suppressHydrationWarning
 			/>

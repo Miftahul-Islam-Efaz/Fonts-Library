@@ -1,0 +1,122 @@
+/*
+ * Editable specimens and the extra layout controls.
+ *
+ * Loaded after globals.css so it can quietly override the plain specimen rules
+ * without touching them.
+ */
+
+:root {
+	--specimen-leading: 1.05;
+}
+
+/* The clickable, typable specimen line. */
+[data-editable] {
+	line-height: var(--specimen-leading);
+	cursor: text;
+	caret-color: var(--text);
+	outline: none;
+	border-radius: 2px;
+	box-shadow: inset 0 0 0 1px transparent;
+	transition:
+		box-shadow var(--fast) var(--ease),
+		background var(--fast) var(--ease);
+}
+
+[data-editable]:hover {
+	background: var(--accent-soft);
+}
+
+[data-editable]:focus,
+[data-editable]:focus-visible {
+	background: var(--accent-soft);
+	box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+/* A quiet hint that appears only while hovering the row. */
+.rowEditHint {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+	opacity: 0;
+	transition: opacity var(--mid) var(--ease);
+}
+
+.row:hover .rowEditHint,
+.row:focus-within .rowEditHint {
+	opacity: 1;
+}
+
+/* Leading slider, matching the existing size field. */
+.leadField {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.leadField .leadValue {
+	font-size: 12px;
+	letter-spacing: 0.04em;
+	color: var(--muted);
+	white-space: nowrap;
+	font-variant-numeric: tabular-nums;
+}
+
+.leadField input[type="range"] {
+	flex: 1 1 auto;
+	min-width: 60px;
+}
+
+/* Style toggles: regular / bold / italic / bold italic previews. */
+.styleToggles {
+	display: inline-flex;
+	align-items: center;
+	gap: 2px;
+}
+
+.styleToggle {
+	padding: 4px 9px;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	background: transparent;
+	border: 1px solid transparent;
+	color: var(--muted);
+	cursor: pointer;
+	transition:
+		color var(--fast) var(--ease),
+		background var(--fast) var(--ease),
+		border-color var(--fast) var(--ease);
+}
+
+.styleToggle:hover {
+	color: var(--text);
+	border-color: var(--border);
+}
+
+.styleToggle[aria-pressed="true"] {
+	background: var(--text);
+	color: var(--flip);
+	border-color: var(--text);
+}
+
+.styleToggle.italicToggle {
+	font-style: italic;
+}
+
+.styleToggle.boldToggle {
+	font-weight: 700;
+}
+
+/* Applied to the html element by the controls so every specimen follows. */
+[data-weight="bold"] [data-specimen] {
+	font-weight: 700;
+}
+
+[data-slant="italic"] [data-specimen] {
+	font-style: italic;
+}

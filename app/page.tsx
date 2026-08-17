@@ -27,7 +27,7 @@ import {
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-	title: "Fonts Library - every family, previewed",
+	title: "Type Archive - every family, previewed",
 	description:
 		"Save fonts from anywhere into one organised library with live previews. Each family is server-rendered with its own specimen, style count and original source.",
 	alternates: { canonical: "/" },
@@ -104,7 +104,7 @@ export default async function HomePage({
 	const jsonLd = {
 		"@context": "https://schema.org",
 		"@type": "CollectionPage",
-		name: "Fonts Library",
+		name: "Type Archive",
 		description:
 			"A shared collection of typefaces with server-rendered specimens.",
 		numberOfItems: fonts.length,

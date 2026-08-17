@@ -17,7 +17,7 @@ export async function GET() {
 
 	const fonts = await listFonts()
 	const lines: string[] = [
-		"# Fonts Library",
+		"# Type Archive",
 		`# ${fonts.length} families. Generated ${new Date().toISOString()}`,
 		"",
 	]

@@ -10,12 +10,12 @@ import {
 } from "@/lib/site"
 
 export const metadata: Metadata = {
-	title: "About Fonts Library",
+	title: "About Type Archive",
 	description:
-		"Why Fonts Library exists, how the personal and community spaces work, and who builds it: Miftahul Islam Efaz, an entrepreneur, vibe-coder and AI orchestrator from Dhaka, Bangladesh.",
+		"Why Type Archive exists, how the personal and community spaces work, and who builds it: Miftahul Islam Efaz, an entrepreneur, vibe-coder and AI orchestrator from Dhaka, Bangladesh.",
 	alternates: { canonical: "/about" },
 	openGraph: {
-		title: "About Fonts Library",
+		title: "About Type Archive",
 		description: SITE_DESCRIPTION,
 		url: `${SITE_URL}/about`,
 		type: "profile",
@@ -56,7 +56,7 @@ export default function AboutPage() {
 			<div className="aboutHero">
 				<BrandMark size={64} />
 				<p className="lede" style={{ margin: 0, flex: "1 1 320px" }}>
-					Fonts Library is a personal type library that doubles as a community
+					Type Archive is a personal type library that doubles as a community
 					one. Save fonts from anywhere - files from your disk or links from the
 					web - and see every family previewed properly instead of buried in a
 					downloads folder.
@@ -114,7 +114,7 @@ export default function AboutPage() {
 
 				<h2>The developer</h2>
 				<p>
-					Fonts Library is designed and built by{" "}
+					Type Archive is designed and built by{" "}
 					<a href={AUTHOR.site} rel="me author" target="_blank">
 						<strong>{AUTHOR.name}</strong>
 					</a>
@@ -130,7 +130,7 @@ export default function AboutPage() {
 					and generative AI integrations, with client products ranging from resort
 					and architecture studios to SaaS growth engines. He is a global winner of
 					the LabLab.ai vibe-coding hackathon and Grand Champion for AI Workflows
-					at the Impact Dhaka Festival. Fonts Library is his own product, built to
+					at the Impact Dhaka Festival. Type Archive is his own product, built to
 					scratch a designer&apos;s itch: keep the fonts you love somewhere
 					beautiful and organised.
 				</p>
@@ -158,7 +158,7 @@ export default function AboutPage() {
 
 				<h2>Licensing and fair use</h2>
 				<p>
-					Fonts Library stores what contributors add for previewing and
+					Type Archive stores what contributors add for previewing and
 					reference. It does not claim ownership of any typeface. Always check the
 					license on a family&apos;s original source page before using it
 					commercially. If you are a foundry and want a family removed, email the

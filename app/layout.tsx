@@ -7,6 +7,9 @@ import UserMenu from "@/components/UserMenu"
 import { isAdminUser } from "@/lib/auth"
 import {
 	AUTHOR,
+	COVER_HEIGHT,
+	COVER_URL,
+	COVER_WIDTH,
 	KEYWORDS,
 	LOGO_URL,
 	SITE_DESCRIPTION,
@@ -19,12 +22,15 @@ import { getCurrentUser } from "@/lib/supabaseServer"
 import {
 	ALIGN_COOKIE,
 	DEFAULT_ALIGN,
+	DEFAULT_LEADING,
 	DEFAULT_MODE,
 	DEFAULT_SIZE,
 	DEFAULT_THEME,
+	LEADING_COOKIE,
 	MODE_COOKIE,
 	SIZE_COOKIE,
 	THEME_COOKIE,
+	clampLeading,
 	clampSize,
 	isAlign,
 	isMode,
@@ -35,6 +41,7 @@ import "./user-menu.css"
 import "./add-font.css"
 import "./project-notes.css"
 import "./home-intro.css"
+import "./specimen-edit.css"
 
 /** Bitmap mark, kept for the favicon and social previews only. */
 export { LOGO_URL }
@@ -42,6 +49,14 @@ export { LOGO_URL }
 /** Interface typefaces: TikTok Sans for display, Roboto and PT Sans for text. */
 const UI_FONT_CSS =
 	"https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100..900;1,100..900&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap"
+
+/** One wide card, reused by Open Graph and X so every chat app finds it. */
+const SOCIAL_CARD = {
+	url: COVER_URL,
+	width: COVER_WIDTH,
+	height: COVER_HEIGHT,
+	alt: `${SITE_NAME} - ${SITE_TAGLINE}`,
+}
 
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_URL),
@@ -80,17 +95,21 @@ export const metadata: Metadata = {
 		title: `${SITE_NAME} - ${SITE_TAGLINE}`,
 		description: SITE_DESCRIPTION,
 		url: SITE_URL,
-		images: [{ url: LOGO_URL, width: 512, height: 512, alt: SITE_NAME }],
+		images: [SOCIAL_CARD],
 	},
 	twitter: {
 		card: "summary_large_image",
 		title: `${SITE_NAME} - ${SITE_TAGLINE}`,
 		description: SITE_DESCRIPTION,
-		images: [LOGO_URL],
+		images: [SOCIAL_CARD],
 		creator: "@Miftahul_Islam9",
 	},
 	other: {
 		"ai-profile": "/llms.txt",
+		// WhatsApp and some older chat clients only read these bare tags.
+		"og:image:secure_url": COVER_URL,
+		"og:image:type": "image/jpeg",
+		"thumbnail": COVER_URL,
 	},
 }
 
@@ -113,6 +132,9 @@ export default async function RootLayout({
 	const size = store.has(SIZE_COOKIE)
 		? clampSize(store.get(SIZE_COOKIE)?.value)
 		: DEFAULT_SIZE
+	const leading = store.has(LEADING_COOKIE)
+		? clampLeading(store.get(LEADING_COOKIE)?.value)
+		: DEFAULT_LEADING
 
 	const user = await getCurrentUser()
 	const isAdmin = isAdminUser(user)
@@ -123,7 +145,12 @@ export default async function RootLayout({
 			data-mode={mode}
 			data-theme={theme}
 			data-align={align}
-			style={{ "--specimen-size": `${size}px` } as React.CSSProperties}
+			style={
+				{
+					"--specimen-size": `${size}px`,
+					"--specimen-leading": String(leading / 100),
+				} as React.CSSProperties
+			}
 			suppressHydrationWarning
 		>
 			{/* Some browser extensions inject attributes here before React loads. */}
@@ -148,7 +175,7 @@ export default async function RootLayout({
 					<header className="siteHeader">
 						<Link href="/" className="brand">
 							<BrandMark />
-							<span className="brandName">Fonts Library</span>
+							<span className="brandName">Type Archive</span>
 						</Link>
 
 						<NavCells signedIn={Boolean(user)} isAdmin={isAdmin} />
@@ -171,7 +198,7 @@ export default async function RootLayout({
 					{children}
 					<footer className="siteFooter">
 						<p style={{ margin: "0 0 8px" }}>
-							{SITE_NAME} - a personal and community type library, built by{" "}
+							{SITE_NAME} - a free, personal and community type library, built by{" "}
 							<a href={AUTHOR.site} rel="me author" target="_blank">
 								{AUTHOR.name}
 							</a>
@@ -181,6 +208,7 @@ export default async function RootLayout({
 						<p style={{ margin: 0 }}>
 							<Link href="/about">About</Link> ·{" "}
 							<Link href="/privacy">Privacy</Link> ·{" "}
+							<Link href="/terms">Terms</Link> ·{" "}
 							<Link href="/pairs">Pairs</Link> ·{" "}
 							<Link href="/api/fonts">JSON</Link> ·{" "}
 							<Link href="/fonts.txt">Plain text</Link> ·{" "}

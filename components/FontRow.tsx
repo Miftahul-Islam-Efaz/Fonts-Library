@@ -1,4 +1,5 @@
 import Link from "next/link"
+import EditableSpecimen from "@/components/EditableSpecimen"
 import FavoriteButton from "@/components/FavoriteButton"
 import { cssFamily, previewStyles } from "@/lib/fonts"
 import type { FontRecord } from "@/lib/types"
@@ -15,7 +16,8 @@ interface Props {
 /**
  * One line of the library, in the style of a foundry specimen list: a thin meta
  * row, the family name set in the family itself at the chosen preview size, and
- * a footer with its source. Fully server-rendered, so crawlers read real text.
+ * a footer with its source. The specimen text is server-rendered, so crawlers
+ * read real text, and is editable in place once the page hydrates.
  */
 export default function FontRow({
 	font,
@@ -60,20 +62,16 @@ export default function FontRow({
 				</span>
 			</div>
 
-			<Link className="rowSpecimenLink" href={`/fonts/${font.slug}`}>
-				<p
-					className="rowSpecimen"
-					data-specimen=""
-					data-default={font.name}
-					style={{ fontFamily: `"${family}", var(--sys)` }}
-				>
-					{font.name}
-				</p>
-			</Link>
+			<EditableSpecimen
+				className="rowSpecimen"
+				family={family}
+				defaultText={font.name}
+			/>
 
 			<div className="rowFoot">
 				<span>{font.notes ? font.notes : font.license ?? "In the library"}</span>
 				<span className="rowFootRight">
+					<span className="rowEditHint">Click the preview to type</span>
 					{badge ? <span className="badge">{badge}</span> : null}
 					<span className="likeCount">
 						{likes} {likes === 1 ? "like" : "likes"}

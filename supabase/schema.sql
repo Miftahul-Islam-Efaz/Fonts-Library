@@ -1,4 +1,4 @@
--- Fonts Library schema. Mirrors the applied migrations:
+-- Type Archive schema. Mirrors the applied migrations:
 --   fonts_library_core
 --   fonts_library_contributors
 --   fonts_library_personal_spaces
