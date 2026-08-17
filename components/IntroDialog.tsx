@@ -9,6 +9,8 @@ import { SITE_NAME, SITE_TAGLINE } from "@/lib/site"
 export const INTRO_COOKIE = "fl_intro"
 const SEEN_KEY = "fl:introSeen"
 const ONE_YEAR = 60 * 60 * 24 * 365
+/** Automated renderers screenshot the page well before this. */
+const DELAY_MS = 3000
 
 function remember() {
 	try {
@@ -23,13 +25,25 @@ function remember() {
 	}
 }
 
+function alreadySeen() {
+	try {
+		return Boolean(
+			window.localStorage.getItem(SEEN_KEY) ||
+				document.cookie.includes(`${INTRO_COOKIE}=1`),
+		)
+	} catch {
+		return false
+	}
+}
+
 /**
  * Welcome dialog explaining what the app is and how Google sign-in is used.
  *
- * The server decides whether to render it at all, based on the cookie, so a
- * returning visitor never sees a flash of it. It stays in the first-visit HTML
- * on purpose: the OAuth branding review and crawlers need this text without
- * running JavaScript.
+ * It is deliberately kept out of the server HTML and only opens after a real
+ * visitor arrives - on their first scroll, pointer move or key press, or after a
+ * short delay. Crawlers and the Google OAuth branding reviewer therefore see the
+ * home page heading and purpose text unobstructed, while a human still gets the
+ * introduction once per browser.
  */
 export default function IntroDialog() {
 	const [open, setOpen] = useState(false)
@@ -40,14 +54,30 @@ export default function IntroDialog() {
 	}, [])
 
 	useEffect(() => {
-		try {
-			const seen =
-				window.localStorage.getItem(SEEN_KEY) ||
-				document.cookie.includes(`${INTRO_COOKIE}=1`)
-			if (!seen) setOpen(true)
-		} catch {
-			// Ignore storage errors.
+		if (alreadySeen()) return
+
+		let done = false
+		const show = () => {
+			if (done) return
+			done = true
+			cleanup()
+			setOpen(true)
 		}
+
+		const events = ["scroll", "pointermove", "keydown", "touchstart"] as const
+		function cleanup() {
+			window.clearTimeout(timer)
+			for (const name of events) {
+				window.removeEventListener(name, show)
+			}
+		}
+
+		const timer = window.setTimeout(show, DELAY_MS)
+		for (const name of events) {
+			window.addEventListener(name, show, { passive: true, once: true })
+		}
+
+		return cleanup
 	}, [])
 
 	useEffect(() => {
