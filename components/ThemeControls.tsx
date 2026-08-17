@@ -25,36 +25,62 @@ function setCookie(name: string, value: string) {
 
 /**
  * Progressive enhancement only. The server already rendered the chosen theme,
- * alignment and size from cookies; this updates them live and remembers them.
+ * alignment and size from cookies; this updates them live, filters the visible
+ * list and remembers everything for the next visit.
  */
 export default function ThemeControls({
 	theme: initialTheme,
 	align: initialAlign,
 	size: initialSize,
+	searchable = false,
 }: {
 	theme: ThemeId
 	align: AlignId
 	size: number
+	/** Show the search box and filter the rendered rows. */
+	searchable?: boolean
 }) {
 	const [theme, setTheme] = useState<ThemeId>(initialTheme)
 	const [align, setAlign] = useState<AlignId>(initialAlign)
 	const [size, setSize] = useState(initialSize)
 	const [text, setText] = useState("")
+	const [query, setQuery] = useState("")
 
 	useEffect(() => {
 		const stored = window.localStorage.getItem(TEXT_KEY)
 		if (stored) setText(stored)
 	}, [])
 
+	// Sample text: empty means each specimen shows its own family name.
 	useEffect(() => {
-		const value = text.trim().length > 0 ? text : DEFAULT_SAMPLE_TEXT
+		const custom = text.trim()
 		for (const node of document.querySelectorAll<HTMLElement>(
 			"[data-specimen]",
 		)) {
-			node.textContent = value
+			node.textContent =
+				custom.length > 0
+					? text
+					: node.dataset.default ?? DEFAULT_SAMPLE_TEXT
 		}
 		window.localStorage.setItem(TEXT_KEY, text)
 	}, [text])
+
+	// Client-side filtering of the server-rendered rows.
+	useEffect(() => {
+		if (!searchable) return
+		const needle = query.trim().toLowerCase()
+		let shown = 0
+		for (const node of document.querySelectorAll<HTMLElement>(
+			"[data-font-row]",
+		)) {
+			const haystack = `${node.dataset.name ?? ""} ${node.dataset.category ?? ""}`
+			const match = needle.length === 0 || haystack.includes(needle)
+			node.hidden = !match
+			if (match) shown += 1
+		}
+		const counter = document.querySelector<HTMLElement>("[data-font-count]")
+		if (counter) counter.textContent = String(shown)
+	}, [query, searchable])
 
 	function pickTheme(next: ThemeId) {
 		setTheme(next)
@@ -79,27 +105,44 @@ export default function ThemeControls({
 		pickAlign(DEFAULT_ALIGN)
 		pickSize(DEFAULT_SIZE)
 		setText("")
+		setQuery("")
 	}
 
 	return (
 		<div className="controls" role="group" aria-label="Preview settings">
+			{searchable ? (
+				<input
+					type="text"
+					value={query}
+					aria-label="Search fonts"
+					placeholder="Search"
+					onChange={(event) => setQuery(event.target.value)}
+				/>
+			) : (
+				<span />
+			)}
+
+			<span />
+			<span />
+
+			<span className="sizeField">
+				<span className="sizeValue">{size}px</span>
+				<input
+					type="range"
+					min={MIN_SIZE}
+					max={MAX_SIZE}
+					value={size}
+					aria-label="Preview size"
+					onChange={(event) => pickSize(Number(event.target.value))}
+				/>
+			</span>
+
 			<input
-				className="grow"
 				type="text"
 				value={text}
 				aria-label="Your sample text"
-				placeholder={DEFAULT_SAMPLE_TEXT}
+				placeholder="Your text"
 				onChange={(event) => setText(event.target.value)}
-			/>
-
-			<span className="sizeValue">{size}px</span>
-			<input
-				type="range"
-				min={MIN_SIZE}
-				max={MAX_SIZE}
-				value={size}
-				aria-label="Preview size"
-				onChange={(event) => pickSize(Number(event.target.value))}
 			/>
 
 			<span className="iconGroup">
@@ -142,7 +185,7 @@ export default function ThemeControls({
 				/>
 			</span>
 
-			<button type="button" onClick={resetAll}>
+			<button type="button" className="resetButton" onClick={resetAll}>
 				Reset All
 			</button>
 		</div>

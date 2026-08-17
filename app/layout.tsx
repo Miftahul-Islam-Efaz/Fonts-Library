@@ -19,22 +19,32 @@ import "./globals.css"
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
 
+/** Brand mark, used for the header logo, the favicon and social previews. */
+export const LOGO_URL =
+	"https://mvajwthjkbwfrzuyvuxl.supabase.co/storage/v1/object/public/Logo/Fonts_library_faviconlogo.png"
+
 export const metadata: Metadata = {
 	metadataBase: new URL(siteUrl),
 	title: {
-		default: "Fonts Library — searchable type specimens",
-		template: "%s — Fonts Library",
+		default: "Fonts Library - searchable type specimens",
+		template: "%s - Fonts Library",
 	},
 	description:
 		"A shared, server-rendered type library. Every font family is stored with its files or web source and previewed in regular, bold, italic and bold italic.",
 	applicationName: "Fonts Library",
 	robots: { index: true, follow: true },
+	icons: {
+		icon: [{ url: LOGO_URL, type: "image/png" }],
+		shortcut: [LOGO_URL],
+		apple: [LOGO_URL],
+	},
 	openGraph: {
 		type: "website",
 		title: "Fonts Library",
 		description:
 			"Server-rendered type specimens with live previews for every stored font family.",
 		url: siteUrl,
+		images: [LOGO_URL],
 	},
 }
 
@@ -63,22 +73,44 @@ export default async function RootLayout({
 			<body>
 				<div className="wrap">
 					<header className="siteHeader">
-						<div>
-							<p className="eyebrow">Type library</p>
-							<h1 style={{ fontSize: 22, margin: 0 }}>
-								<Link href="/" style={{ border: 0, color: "inherit" }}>
-									Fonts Library
+						<Link href="/" className="brand">
+							{/* eslint-disable-next-line @next/next/no-img-element */}
+							<img
+								className="brandMark"
+								src={LOGO_URL}
+								alt=""
+								width={30}
+								height={30}
+							/>
+							<span className="brandName">Fonts Library</span>
+						</Link>
+
+						<nav className="navCells" aria-label="Main">
+							<Link className="navCell" href="/">
+								<span>Fonts</span>
+								<small>Library</small>
+							</Link>
+							<Link className="navCell" href="/pairs">
+								<span>Pairs</span>
+								<small>Suggested</small>
+							</Link>
+							{user ? (
+								<Link className="navCell" href="/my">
+									<span>My space</span>
+									<small>Yours</small>
 								</Link>
-							</h1>
-						</div>
-						<nav className="navLinks" aria-label="Main">
-							<Link href="/">Library</Link>
-							<Link href="/pairs">Pairings</Link>
-							{user ? <Link href="/my">My space</Link> : null}
-							<Link href="/favorites">Favorites</Link>
-							<Link href="/manage">{isAdmin ? "Manage" : "Add a font"}</Link>
-							<Link href="/api/fonts">JSON</Link>
-							<Link href="/fonts.txt">Text</Link>
+							) : null}
+							<Link className="navCell" href="/favorites">
+								<span>Favorites</span>
+								<small>Liked</small>
+							</Link>
+							<Link className="navCell" href="/manage">
+								<span>{isAdmin ? "Manage" : "Add"}</span>
+								<small>{isAdmin ? "Admin" : "A font"}</small>
+							</Link>
+						</nav>
+
+						<div className="headStatus">
 							{user ? (
 								<span className="userChip">
 									{user.avatar ? (
@@ -87,8 +119,8 @@ export default async function RootLayout({
 											className="avatar"
 											src={user.avatar}
 											alt=""
-											width={24}
-											height={24}
+											width={22}
+											height={22}
 										/>
 									) : null}
 									{user.name ?? user.email}
@@ -99,14 +131,16 @@ export default async function RootLayout({
 									</form>
 								</span>
 							) : (
-								<Link href="/login">Sign in</Link>
+								<Link href="/login">Sign in with Google</Link>
 							)}
-						</nav>
+						</div>
 					</header>
 					{children}
 					<footer className="siteFooter">
-						Fonts Library — server-rendered specimens. Check the license of
-						each family at its original source before commercial use.
+						Fonts Library - server-rendered specimens. Check the license of each
+						family at its original source before commercial use.{" "}
+						<Link href="/api/fonts">JSON</Link> ·{" "}
+						<Link href="/fonts.txt">Plain text</Link>
 					</footer>
 				</div>
 			</body>
