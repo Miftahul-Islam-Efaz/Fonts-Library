@@ -1,11 +1,20 @@
-export type ThemeId = "light" | "dark" | "rose" | "butter" | "mint" | "sky"
+/**
+ * Appearance is two independent axes, like the reference foundry site:
+ *   - mode  (light | dark): the base canvas.
+ *   - theme (a tint): the ink colour. In the dark base only the text and the
+ *     highlighted parts take the tint; the canvas stays black.
+ */
+export type ModeId = "light" | "dark"
+export type ThemeId = "light" | "butter" | "rose" | "mint"
 export type AlignId = "left" | "center" | "right"
 export type SortId = "new" | "popular" | "alphabetical"
 
+export const MODE_COOKIE = "fl_mode"
 export const THEME_COOKIE = "fl_theme"
 export const ALIGN_COOKIE = "fl_align"
 export const SIZE_COOKIE = "fl_size"
 
+export const DEFAULT_MODE: ModeId = "light"
 export const DEFAULT_THEME: ThemeId = "light"
 export const DEFAULT_ALIGN: AlignId = "left"
 export const DEFAULT_SORT: SortId = "popular"
@@ -13,14 +22,17 @@ export const DEFAULT_SIZE = 44
 export const MIN_SIZE = 12
 export const MAX_SIZE = 160
 
-/** Swatch colours mirror each theme's canvas, like the picker in the reference UI. */
+export const MODES: Array<{ id: ModeId; label: string }> = [
+	{ id: "light", label: "Light" },
+	{ id: "dark", label: "Dark" },
+]
+
+/** The swatch colour is the tint itself: the light canvas, or the dark ink. */
 export const THEMES: Array<{ id: ThemeId; label: string; swatch: string }> = [
-	{ id: "rose", label: "Rose", swatch: "#fdeced" },
-	{ id: "butter", label: "Butter", swatch: "#fdf6e0" },
-	{ id: "mint", label: "Mint", swatch: "#e9fbf0" },
-	{ id: "sky", label: "Sky", swatch: "#e8f9fd" },
+	{ id: "butter", label: "Butter", swatch: "#ffffe3" },
+	{ id: "rose", label: "Rose", swatch: "#fcecec" },
+	{ id: "mint", label: "Mint", swatch: "#e2fde6" },
 	{ id: "light", label: "Paper", swatch: "#ffffff" },
-	{ id: "dark", label: "Dark", swatch: "#191919" },
 ]
 
 export const ALIGNMENTS: Array<{ id: AlignId; label: string }> = [
@@ -34,6 +46,10 @@ export const SORTS: Array<{ id: SortId; label: string }> = [
 	{ id: "popular", label: "Popular" },
 	{ id: "alphabetical", label: "Alphabetical" },
 ]
+
+export function isMode(value: unknown): value is ModeId {
+	return MODES.some((mode) => mode.id === value)
+}
 
 export function isTheme(value: unknown): value is ThemeId {
 	return THEMES.some((theme) => theme.id === value)

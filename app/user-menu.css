@@ -1,0 +1,256 @@
+/* ---------- Header profile control ---------- */
+.userMenu {
+	position: relative;
+}
+
+.userTrigger {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	min-height: 46px;
+	padding: 0 14px 0 6px;
+	border-radius: 999px;
+	border: 1px solid var(--border);
+	background: linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.1),
+			rgba(0, 0, 0, 0.05)
+		),
+		var(--soft);
+	color: var(--text);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.2) inset,
+		0 4px 12px rgba(0, 0, 0, 0.08);
+	cursor: pointer;
+}
+
+.userTrigger:hover {
+	border-color: var(--text);
+	transform: translateY(-1px);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.26) inset,
+		0 10px 22px rgba(0, 0, 0, 0.14);
+	background: linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.16),
+			rgba(0, 0, 0, 0.04)
+		),
+		var(--soft);
+}
+
+.userTrigger:active {
+	transform: translateY(0) scale(0.985);
+}
+
+.userAvatar {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	overflow: hidden;
+	flex: 0 0 auto;
+	background: var(--surface);
+	box-shadow: 0 0 0 1px var(--border), 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.userAvatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.userAvatar.large {
+	width: 48px;
+	height: 48px;
+}
+
+.userInitial {
+	font-family: var(--display);
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--text);
+}
+
+.userAvatar.large .userInitial {
+	font-size: 20px;
+}
+
+.userTriggerText {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	line-height: 1.15;
+	max-width: 160px;
+}
+
+.userName {
+	font-family: var(--display);
+	font-size: 14px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--text);
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.userRole {
+	font-family: var(--ui);
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.userCaret {
+	width: 11px;
+	height: 8px;
+	color: var(--muted);
+	transition: transform var(--mid) var(--ease);
+}
+
+.userCaret.open {
+	transform: rotate(180deg);
+}
+
+/* ---------- Account card ---------- */
+.userPanel {
+	position: absolute;
+	top: calc(100% + 12px);
+	right: 0;
+	z-index: 60;
+	width: 268px;
+	padding: 16px;
+	border: 1px solid var(--border);
+	border-radius: 18px;
+	background: var(--canvas);
+	box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22), 0 2px 0 rgba(0, 0, 0, 0.04);
+	animation: riseIn 200ms var(--ease) both;
+	white-space: normal;
+}
+
+.userPanelHead {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	padding-bottom: 14px;
+	border-bottom: 1px solid var(--border);
+}
+
+.userPanelWho {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.userPanelWho strong {
+	font-family: var(--display);
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--text);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.userPanelEmail {
+	font-size: 12px;
+	color: var(--muted);
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.userPanelLinks {
+	display: flex;
+	flex-direction: column;
+	padding: 8px 0;
+	border-bottom: 1px solid var(--border);
+}
+
+.userPanelLink {
+	display: flex;
+	align-items: center;
+	min-height: 38px;
+	padding: 0 12px;
+	border-radius: 10px;
+	font-family: var(--display);
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: -0.015em;
+	color: var(--text);
+}
+
+.userPanelLink:hover {
+	text-decoration: none;
+	background: var(--soft);
+	transform: translateX(2px);
+}
+
+.signOutForm {
+	display: block;
+	padding-top: 12px;
+}
+
+.signOutButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 9px;
+	width: 100%;
+	min-height: 44px;
+	padding: 0 16px;
+	border-radius: 999px;
+	border: 1px solid var(--text);
+	background: linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.22),
+			rgba(0, 0, 0, 0.12)
+		),
+		var(--text);
+	color: var(--flip);
+	font-family: var(--display);
+	font-size: 15px;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset,
+		0 8px 20px rgba(0, 0, 0, 0.2);
+	cursor: pointer;
+}
+
+.signOutButton svg {
+	width: 18px;
+	height: 18px;
+}
+
+.signOutButton:hover {
+	transform: translateY(-2px);
+	background: linear-gradient(
+			180deg,
+			rgba(255, 255, 255, 0.3),
+			rgba(0, 0, 0, 0.08)
+		),
+		var(--text);
+	box-shadow: 0 1px 0 rgba(255, 255, 255, 0.34) inset,
+		0 14px 28px rgba(0, 0, 0, 0.26);
+}
+
+.signOutButton:active {
+	transform: translateY(0) scale(0.985);
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+}
+
+@media (max-width: 700px) {
+	.userPanel {
+		right: auto;
+		left: 0;
+	}
+	.userTriggerText {
+		max-width: 120px;
+	}
+}

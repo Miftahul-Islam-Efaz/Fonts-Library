@@ -1,12 +1,20 @@
 import type { MetadataRoute } from "next"
+import { SITE_URL } from "@/lib/site"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-
-/** Every crawler and AI model is welcome, except the manage screen. */
+/**
+ * Every crawler and AI model is welcome on public pages. Personal and
+ * authenticated screens are kept out of the index.
+ */
 export default function robots(): MetadataRoute.Robots {
 	return {
-		rules: [{ userAgent: "*", allow: "/", disallow: ["/manage"] }],
-		sitemap: `${siteUrl}/sitemap.xml`,
-		host: siteUrl,
+		rules: [
+			{
+				userAgent: "*",
+				allow: "/",
+				disallow: ["/manage", "/my", "/favorites", "/login", "/auth/"],
+			},
+		],
+		sitemap: `${SITE_URL}/sitemap.xml`,
+		host: SITE_URL,
 	}
 }

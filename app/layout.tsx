@@ -1,38 +1,71 @@
 import type { Metadata } from "next"
 import Link from "next/link"
 import { cookies } from "next/headers"
-import { signOutAction } from "@/app/actions"
+import BrandMark from "@/components/BrandMark"
+import NavCells from "@/components/NavCells"
+import UserMenu from "@/components/UserMenu"
 import { isAdminUser } from "@/lib/auth"
+import {
+	AUTHOR,
+	KEYWORDS,
+	LOGO_URL,
+	SITE_DESCRIPTION,
+	SITE_NAME,
+	SITE_TAGLINE,
+	SITE_URL,
+	siteGraph,
+} from "@/lib/site"
 import { getCurrentUser } from "@/lib/supabaseServer"
 import {
 	ALIGN_COOKIE,
 	DEFAULT_ALIGN,
+	DEFAULT_MODE,
 	DEFAULT_SIZE,
 	DEFAULT_THEME,
+	MODE_COOKIE,
 	SIZE_COOKIE,
 	THEME_COOKIE,
 	clampSize,
 	isAlign,
+	isMode,
 	isTheme,
 } from "@/lib/theme"
 import "./globals.css"
+import "./user-menu.css"
+import "./add-font.css"
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+/** Bitmap mark, kept for the favicon and social previews only. */
+export { LOGO_URL }
 
-/** Brand mark, used for the header logo, the favicon and social previews. */
-export const LOGO_URL =
-	"https://mvajwthjkbwfrzuyvuxl.supabase.co/storage/v1/object/public/Logo/Fonts_library_faviconlogo.png"
+/** Interface typefaces: TikTok Sans for display, Roboto and PT Sans for text. */
+const UI_FONT_CSS =
+	"https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100..900;1,100..900&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap"
 
 export const metadata: Metadata = {
-	metadataBase: new URL(siteUrl),
+	metadataBase: new URL(SITE_URL),
 	title: {
-		default: "Fonts Library - searchable type specimens",
-		template: "%s - Fonts Library",
+		default: `${SITE_NAME} - ${SITE_TAGLINE}`,
+		template: `%s - ${SITE_NAME}`,
 	},
-	description:
-		"A shared, server-rendered type library. Every font family is stored with its files or web source and previewed in regular, bold, italic and bold italic.",
-	applicationName: "Fonts Library",
-	robots: { index: true, follow: true },
+	description: SITE_DESCRIPTION,
+	applicationName: SITE_NAME,
+	keywords: KEYWORDS,
+	authors: [{ name: AUTHOR.name, url: AUTHOR.site }],
+	creator: AUTHOR.name,
+	publisher: AUTHOR.name,
+	category: "design",
+	alternates: { canonical: "/" },
+	formatDetection: { telephone: false },
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-image-preview": "large",
+			"max-snippet": -1,
+		},
+	},
 	icons: {
 		icon: [{ url: LOGO_URL, type: "image/png" }],
 		shortcut: [LOGO_URL],
@@ -40,11 +73,22 @@ export const metadata: Metadata = {
 	},
 	openGraph: {
 		type: "website",
-		title: "Fonts Library",
-		description:
-			"Server-rendered type specimens with live previews for every stored font family.",
-		url: siteUrl,
+		siteName: SITE_NAME,
+		locale: "en_US",
+		title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+		description: SITE_DESCRIPTION,
+		url: SITE_URL,
+		images: [{ url: LOGO_URL, width: 512, height: 512, alt: SITE_NAME }],
+	},
+	twitter: {
+		card: "summary_large_image",
+		title: `${SITE_NAME} - ${SITE_TAGLINE}`,
+		description: SITE_DESCRIPTION,
 		images: [LOGO_URL],
+		creator: "@Miftahul_Islam9",
+	},
+	other: {
+		"ai-profile": "/llms.txt",
 	},
 }
 
@@ -52,8 +96,16 @@ export default async function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	const store = await cookies()
+	const modeCookie = store.get(MODE_COOKIE)?.value
 	const themeCookie = store.get(THEME_COOKIE)?.value
 	const alignCookie = store.get(ALIGN_COOKIE)?.value
+
+	// Legacy cookies stored "dark" as a theme; read it as the dark base.
+	const mode = isMode(modeCookie)
+		? modeCookie
+		: themeCookie === "dark"
+			? "dark"
+			: DEFAULT_MODE
 	const theme = isTheme(themeCookie) ? themeCookie : DEFAULT_THEME
 	const align = isAlign(alignCookie) ? alignCookie : DEFAULT_ALIGN
 	const size = store.has(SIZE_COOKIE)
@@ -66,81 +118,72 @@ export default async function RootLayout({
 	return (
 		<html
 			lang="en"
+			data-mode={mode}
 			data-theme={theme}
 			data-align={align}
 			style={{ "--specimen-size": `${size}px` } as React.CSSProperties}
+			suppressHydrationWarning
 		>
-			<body>
+			{/* Some browser extensions inject attributes here before React loads. */}
+			<body suppressHydrationWarning>
+				{/* React hoists these into <head>. */}
+				<link rel="preconnect" href="https://fonts.googleapis.com" />
+				<link
+					rel="preconnect"
+					href="https://fonts.gstatic.com"
+					crossOrigin="anonymous"
+				/>
+				<link rel="stylesheet" href={UI_FONT_CSS} />
+				<link rel="me" href={AUTHOR.site} />
+
+				{/* Entity graph: product, website and the person who built it. */}
+				<script
+					type="application/ld+json"
+					dangerouslySetInnerHTML={{ __html: JSON.stringify(siteGraph()) }}
+				/>
+
 				<div className="wrap">
 					<header className="siteHeader">
 						<Link href="/" className="brand">
-							{/* eslint-disable-next-line @next/next/no-img-element */}
-							<img
-								className="brandMark"
-								src={LOGO_URL}
-								alt=""
-								width={30}
-								height={30}
-							/>
+							<BrandMark />
 							<span className="brandName">Fonts Library</span>
 						</Link>
 
-						<nav className="navCells" aria-label="Main">
-							<Link className="navCell" href="/">
-								<span>Fonts</span>
-								<small>Library</small>
-							</Link>
-							<Link className="navCell" href="/pairs">
-								<span>Pairs</span>
-								<small>Suggested</small>
-							</Link>
-							{user ? (
-								<Link className="navCell" href="/my">
-									<span>My space</span>
-									<small>Yours</small>
-								</Link>
-							) : null}
-							<Link className="navCell" href="/favorites">
-								<span>Favorites</span>
-								<small>Liked</small>
-							</Link>
-							<Link className="navCell" href="/manage">
-								<span>{isAdmin ? "Manage" : "Add"}</span>
-								<small>{isAdmin ? "Admin" : "A font"}</small>
-							</Link>
-						</nav>
+						<NavCells signedIn={Boolean(user)} isAdmin={isAdmin} />
 
 						<div className="headStatus">
 							{user ? (
-								<span className="userChip">
-									{user.avatar ? (
-										/* eslint-disable-next-line @next/next/no-img-element */
-										<img
-											className="avatar"
-											src={user.avatar}
-											alt=""
-											width={22}
-											height={22}
-										/>
-									) : null}
-									{user.name ?? user.email}
-									<form action={signOutAction} className="inlineForm">
-										<button type="submit" className="linkButton">
-											Sign out
-										</button>
-									</form>
-								</span>
+								<UserMenu
+									name={user.name}
+									email={user.email}
+									avatar={user.avatar}
+									isAdmin={isAdmin}
+								/>
 							) : (
-								<Link href="/login">Sign in with Google</Link>
+								<Link href="/login" className="headSignIn">
+									Sign in with Google
+								</Link>
 							)}
 						</div>
 					</header>
 					{children}
 					<footer className="siteFooter">
-						Fonts Library - server-rendered specimens. Check the license of each
-						family at its original source before commercial use.{" "}
-						<Link href="/api/fonts">JSON</Link> ·{" "}
-						<Link href="/fonts.txt">Plain text</Link>
+						<p style={{ margin: "0 0 8px" }}>
+							{SITE_NAME} - a personal and community type library, built by{" "}
+							<a href={AUTHOR.site} rel="me author" target="_blank">
+								{AUTHOR.name}
+							</a>
+							. Check the license of each family at its original source before
+							commercial use.
+						</p>
+						<p style={{ margin: 0 }}>
+							<Link href="/about">About</Link> ·{" "}
+							<Link href="/privacy">Privacy</Link> ·{" "}
+							<Link href="/pairs">Pairs</Link> ·{" "}
+							<Link href="/api/fonts">JSON</Link> ·{" "}
+							<Link href="/fonts.txt">Plain text</Link> ·{" "}
+							<Link href="/llms.txt">llms.txt</Link>
+						</p>
 					</footer>
 				</div>
 			</body>

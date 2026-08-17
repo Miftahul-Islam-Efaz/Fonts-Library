@@ -6,14 +6,17 @@ import {
 	ALIGNMENTS,
 	ALIGN_COOKIE,
 	DEFAULT_ALIGN,
+	DEFAULT_MODE,
 	DEFAULT_SIZE,
 	DEFAULT_THEME,
 	MAX_SIZE,
 	MIN_SIZE,
+	MODE_COOKIE,
 	SIZE_COOKIE,
 	THEMES,
 	THEME_COOKIE,
 	type AlignId,
+	type ModeId,
 	type ThemeId,
 } from "@/lib/theme"
 
@@ -24,9 +27,9 @@ function setCookie(name: string, value: string) {
 }
 
 /**
- * Progressive enhancement only. The server already rendered the chosen theme,
- * alignment and size from cookies; this updates them live, filters the visible
- * list and remembers everything for the next visit.
+ * Progressive enhancement only. The server already rendered the chosen base,
+ * tint, alignment and size from cookies; this updates them live, filters the
+ * visible list and remembers everything for the next visit.
  */
 export default function ThemeControls({
 	theme: initialTheme,
@@ -40,11 +43,18 @@ export default function ThemeControls({
 	/** Show the search box and filter the rendered rows. */
 	searchable?: boolean
 }) {
+	const [mode, setMode] = useState<ModeId>(DEFAULT_MODE)
 	const [theme, setTheme] = useState<ThemeId>(initialTheme)
 	const [align, setAlign] = useState<AlignId>(initialAlign)
 	const [size, setSize] = useState(initialSize)
 	const [text, setText] = useState("")
 	const [query, setQuery] = useState("")
+
+	// Read the base from the document so the first paint cannot mismatch.
+	useEffect(() => {
+		const current = document.documentElement.dataset.mode
+		if (current === "dark" || current === "light") setMode(current)
+	}, [])
 
 	useEffect(() => {
 		const stored = window.localStorage.getItem(TEXT_KEY)
@@ -82,6 +92,14 @@ export default function ThemeControls({
 		if (counter) counter.textContent = String(shown)
 	}, [query, searchable])
 
+	/** Base only. The tint is left exactly as it is. */
+	function pickMode(next: ModeId) {
+		setMode(next)
+		document.documentElement.dataset.mode = next
+		setCookie(MODE_COOKIE, next)
+	}
+
+	/** Tint only. The base is left exactly as it is. */
 	function pickTheme(next: ThemeId) {
 		setTheme(next)
 		document.documentElement.dataset.theme = next
@@ -101,6 +119,7 @@ export default function ThemeControls({
 	}
 
 	function resetAll() {
+		pickMode(DEFAULT_MODE)
 		pickTheme(DEFAULT_THEME)
 		pickAlign(DEFAULT_ALIGN)
 		pickSize(DEFAULT_SIZE)
@@ -109,7 +128,12 @@ export default function ThemeControls({
 	}
 
 	return (
-		<div className="controls" role="group" aria-label="Preview settings">
+		<div
+			className="controls"
+			role="group"
+			aria-label="Preview settings"
+			suppressHydrationWarning
+		>
 			{searchable ? (
 				<input
 					type="text"
@@ -117,6 +141,7 @@ export default function ThemeControls({
 					aria-label="Search fonts"
 					placeholder="Search"
 					onChange={(event) => setQuery(event.target.value)}
+					suppressHydrationWarning
 				/>
 			) : (
 				<span />
@@ -134,6 +159,7 @@ export default function ThemeControls({
 					value={size}
 					aria-label="Preview size"
 					onChange={(event) => pickSize(Number(event.target.value))}
+					suppressHydrationWarning
 				/>
 			</span>
 
@@ -143,6 +169,7 @@ export default function ThemeControls({
 				aria-label="Your sample text"
 				placeholder="Your text"
 				onChange={(event) => setText(event.target.value)}
+				suppressHydrationWarning
 			/>
 
 			<span className="iconGroup">
@@ -163,14 +190,14 @@ export default function ThemeControls({
 			</span>
 
 			<span className="swatches">
-				{THEMES.filter((option) => option.id !== "dark").map((option) => (
+				{THEMES.map((option) => (
 					<button
 						key={option.id}
 						type="button"
 						className="swatch"
 						style={{ background: option.swatch }}
-						title={`${option.label} theme`}
-						aria-label={`${option.label} theme`}
+						title={`${option.label} colour`}
+						aria-label={`${option.label} colour`}
 						aria-pressed={theme === option.id}
 						onClick={() => pickTheme(option.id)}
 					/>
@@ -178,10 +205,12 @@ export default function ThemeControls({
 				<button
 					type="button"
 					className="swatch darkToggle"
-					title="Dark theme"
-					aria-label="Dark theme"
-					aria-pressed={theme === "dark"}
-					onClick={() => pickTheme(theme === "dark" ? "light" : "dark")}
+					title={mode === "dark" ? "Switch to light base" : "Switch to dark base"}
+					aria-label={
+						mode === "dark" ? "Switch to light base" : "Switch to dark base"
+					}
+					aria-pressed={mode === "dark"}
+					onClick={() => pickMode(mode === "dark" ? "light" : "dark")}
 				/>
 			</span>
 

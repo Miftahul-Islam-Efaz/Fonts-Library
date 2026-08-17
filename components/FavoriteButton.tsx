@@ -1,13 +1,14 @@
 "use client"
 
 import Link from "next/link"
-import { useActionState } from "react"
+import { useActionState, useEffect, useState } from "react"
 import { toggleFavoriteAction } from "@/app/actions"
 import { emptyState } from "@/lib/actionState"
 
 /**
  * The like count itself is server-rendered next to this button, so it stays
- * visible to crawlers even though the toggle needs JavaScript.
+ * visible to crawlers even though the toggle needs JavaScript. The heart flips
+ * optimistically on click and only reverts if the server rejects the change.
  */
 export default function FavoriteButton({
 	fontId,
@@ -26,6 +27,16 @@ export default function FavoriteButton({
 		toggleFavoriteAction,
 		emptyState,
 	)
+	const [liked, setLiked] = useState(isFavorite)
+
+	// Keep in step with fresh server data, and roll back a failed toggle.
+	useEffect(() => {
+		setLiked(isFavorite)
+	}, [isFavorite])
+
+	useEffect(() => {
+		if (state.message && !state.ok) setLiked(isFavorite)
+	}, [state, isFavorite])
 
 	if (!signedIn) {
 		return (
@@ -45,17 +56,19 @@ export default function FavoriteButton({
 			<input type="hidden" name="slug" value={slug} />
 			<button
 				type="submit"
-				className={isFavorite ? "likeButton liked" : "likeButton"}
-				disabled={pending}
-				aria-pressed={isFavorite}
+				className={`likeButton${liked ? " liked" : ""}${pending ? " busy" : ""}`}
+				aria-pressed={liked}
 				aria-label={
-					isFavorite
+					liked
 						? `Remove ${fontName} from favorites`
 						: `Add ${fontName} to favorites`
 				}
+				onClick={() => setLiked((value) => !value)}
 			>
-				<span aria-hidden="true">{isFavorite ? "♥" : "♡"}</span>{" "}
-				{isFavorite ? "Favorited" : "Like"}
+				<span className="heart" aria-hidden="true">
+					{liked ? "♥" : "♡"}
+				</span>{" "}
+				{liked ? "Favorited" : "Like"}
 			</button>
 			{state.message && !state.ok ? (
 				<span style={{ fontSize: 12, color: "var(--warn-text)" }}>
