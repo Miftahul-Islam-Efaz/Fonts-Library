@@ -9,7 +9,7 @@
 	display: grid;
 	place-items: center;
 	padding: 20px;
-	background: rgba(var(--ink), 0.42);
+	background: rgba(0, 0, 0, 0.55);
 	backdrop-filter: blur(6px);
 	animation: fadeIn var(--mid) var(--ease) both;
 }
@@ -154,6 +154,10 @@
 }
 
 .introStart:hover {
+	background:
+		linear-gradient(rgba(255, 255, 255, 0.24), rgba(0, 0, 0, 0.04)),
+		var(--text);
+	color: var(--canvas);
 	transform: translateY(-2px);
 	box-shadow: 0 16px 32px rgba(var(--ink), 0.22);
 }

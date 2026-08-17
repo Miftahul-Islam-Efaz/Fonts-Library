@@ -1106,7 +1106,10 @@ button,
 	border-radius: 0;
 }
 
-button:hover {
+/* Only unstyled buttons take the default hover. Classed buttons (solid pills,
+   swatches, icon buttons) define their own, otherwise this rule repaints them
+   dark-on-dark and the label disappears. */
+button:not([class]):hover {
 	background: var(--soft);
 }
 
