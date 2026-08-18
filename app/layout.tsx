@@ -40,7 +40,7 @@ import "./globals.css"
 import "./user-menu.css"
 import "./add-font.css"
 import "./project-notes.css"
-import "./home-intro.css"
+import "./hero.css"
 import "./use-font.css"
 import "./upload-status.css"
 import "./specimen-edit.css"
@@ -50,7 +50,7 @@ export { LOGO_URL }
 
 /** Interface typefaces: TikTok Sans for display, Roboto and PT Sans for text. */
 const UI_FONT_CSS =
-	"https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100..900;1,100..900&family=TikTok+Sans:opsz,wght@12..36,300..900&display=swap"
+	"https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Roboto:ital,wght@0,100..900;1,100..900&family=TikTok+Sans:opsz,wght@12..36,300..900&family=Instrument+Serif:ital@0;1&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap"
 
 /** One wide card, reused by Open Graph and X so every chat app finds it. */
 const SOCIAL_CARD = {

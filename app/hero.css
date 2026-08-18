@@ -1,0 +1,284 @@
+/* Home page hero. Display face is Instrument Serif, support text Instrument Sans. */
+
+:root {
+	--hero-display: "Instrument Serif", "Fraunces", Georgia, serif;
+	--hero-sans: "Instrument Sans", "TikTok Sans", var(--sys);
+}
+
+.hero {
+	display: grid;
+	grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.85fr);
+	gap: clamp(28px, 5vw, 72px);
+	align-items: start;
+	padding: clamp(36px, 7vh, 84px) 0 clamp(32px, 6vh, 64px);
+	border-bottom: 1px solid var(--border);
+	animation: riseIn var(--mid) var(--ease) both;
+}
+
+.heroCopy {
+	min-width: 0;
+}
+
+.heroEyebrow {
+	margin: 0 0 clamp(14px, 2.4vh, 22px);
+	font-family: var(--hero-sans);
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 0.16em;
+	text-transform: uppercase;
+	color: var(--muted);
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.heroEyebrow::before {
+	content: "";
+	width: 26px;
+	height: 1px;
+	background: var(--text);
+	opacity: 0.45;
+}
+
+.heroTitle {
+	margin: 0;
+	font-family: var(--hero-display);
+	font-weight: 400;
+	font-size: clamp(52px, 9.5vw, 118px);
+	line-height: 0.92;
+	letter-spacing: -0.022em;
+	color: var(--text);
+	text-wrap: balance;
+}
+
+.heroTagline {
+	margin: clamp(16px, 2.6vh, 24px) 0 0;
+	font-family: var(--hero-display);
+	font-style: italic;
+	font-size: clamp(21px, 2.5vw, 30px);
+	line-height: 1.28;
+	letter-spacing: -0.005em;
+	color: var(--text);
+	max-width: 30ch;
+	text-wrap: balance;
+}
+
+.heroLead {
+	margin: clamp(18px, 2.8vh, 26px) 0 0;
+	font-family: var(--hero-sans);
+	font-size: 16.5px;
+	line-height: 1.62;
+	letter-spacing: -0.002em;
+	color: var(--muted);
+	max-width: 58ch;
+}
+
+.heroActions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin-top: clamp(24px, 3.6vh, 34px);
+}
+
+.heroActions a {
+	font-family: var(--hero-sans);
+	font-size: 14px;
+	font-weight: 600;
+	letter-spacing: 0.005em;
+	text-decoration: none;
+	padding: 12px 20px;
+	border: 1px solid var(--border);
+	transition:
+		transform var(--fast) var(--ease),
+		background var(--fast) var(--ease),
+		color var(--fast) var(--ease),
+		border-color var(--fast) var(--ease);
+}
+
+.heroPrimary {
+	background: var(--text);
+	color: var(--flip);
+	border-color: var(--text) !important;
+}
+
+.heroPrimary:hover {
+	background: linear-gradient(
+			rgba(255, 255, 255, 0.22),
+			rgba(0, 0, 0, 0.04)
+		),
+		var(--text);
+	color: var(--flip);
+	transform: translateY(-2px);
+}
+
+.heroSecondary {
+	background: var(--canvas);
+	color: var(--text);
+}
+
+.heroSecondary:hover {
+	background: var(--soft);
+	border-color: var(--text);
+	transform: translateY(-2px);
+}
+
+.heroTertiary {
+	background: transparent;
+	color: var(--muted);
+	border-color: transparent !important;
+	padding-left: 8px;
+	padding-right: 8px;
+}
+
+.heroTertiary:hover {
+	color: var(--text);
+	transform: translateX(3px);
+}
+
+.heroFine {
+	margin: clamp(22px, 3.2vh, 30px) 0 0;
+	font-family: var(--hero-sans);
+	font-size: 13px;
+	line-height: 1.6;
+	color: var(--muted);
+	max-width: 62ch;
+}
+
+.heroFine a {
+	color: var(--text);
+	text-decoration-thickness: 1px;
+	text-underline-offset: 3px;
+}
+
+/* Right column: one quiet card, so the composition stays two-part. */
+.heroPanel {
+	border: 1px solid var(--border);
+	background: var(--soft);
+	padding: clamp(20px, 2.4vw, 28px);
+	display: flex;
+	flex-direction: column;
+	gap: clamp(18px, 2.4vh, 26px);
+}
+
+.heroGlyph {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 12px;
+	padding-bottom: clamp(14px, 2vh, 20px);
+	border-bottom: 1px solid var(--border);
+	font-family: var(--hero-display);
+	color: var(--text);
+	line-height: 1;
+}
+
+.heroGlyphUpper {
+	font-size: clamp(56px, 7vw, 88px);
+	letter-spacing: -0.03em;
+}
+
+.heroGlyphLower {
+	font-style: italic;
+	font-size: clamp(20px, 2vw, 26px);
+	color: var(--muted);
+}
+
+.heroStats {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 12px;
+}
+
+.heroStat {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-width: 0;
+}
+
+.heroStatValue {
+	font-family: var(--hero-sans);
+	font-size: clamp(24px, 2.6vw, 30px);
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--text);
+	font-variant-numeric: tabular-nums;
+}
+
+.heroStatLabel {
+	font-family: var(--hero-sans);
+	font-size: 11.5px;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.heroPoints {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	display: flex;
+	flex-direction: column;
+	gap: 9px;
+	border-top: 1px solid var(--border);
+	padding-top: clamp(16px, 2vh, 22px);
+}
+
+.heroPoints li {
+	font-family: var(--hero-sans);
+	font-size: 13.5px;
+	line-height: 1.5;
+	color: var(--muted);
+	padding-left: 18px;
+	position: relative;
+}
+
+.heroPoints li::before {
+	content: "";
+	position: absolute;
+	left: 0;
+	top: 0.62em;
+	width: 8px;
+	height: 1px;
+	background: var(--text);
+	opacity: 0.5;
+}
+
+@media (max-width: 900px) {
+	.hero {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 28px;
+		padding-top: clamp(28px, 5vh, 48px);
+	}
+
+	.heroTitle {
+		font-size: clamp(46px, 15vw, 76px);
+	}
+
+	.heroPanel {
+		order: 2;
+	}
+}
+
+@media (max-width: 520px) {
+	.heroActions a {
+		width: 100%;
+		text-align: center;
+	}
+
+	.heroTertiary {
+		text-align: left !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hero {
+		animation: none;
+	}
+
+	.heroActions a:hover {
+		transform: none;
+	}
+}

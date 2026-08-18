@@ -2,13 +2,13 @@ import Link from "next/link"
 import { cookies } from "next/headers"
 import FontHead from "@/components/FontHead"
 import FontRow from "@/components/FontRow"
-import IntroDialog, { INTRO_COOKIE } from "@/components/IntroDialog"
+import Hero, { type HeroStats } from "@/components/Hero"
 import ThemeControls from "@/components/ThemeControls"
 import { myFavoriteIds } from "@/lib/favorites"
 import { listFonts } from "@/lib/fonts"
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/site"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import { getCurrentUser } from "@/lib/supabaseServer"
+import type { FontRecord } from "@/lib/types"
 import {
 	ALIGN_COOKIE,
 	DEFAULT_ALIGN,
@@ -33,34 +33,20 @@ export const metadata = {
 	alternates: { canonical: "/" },
 }
 
-/**
- * Visible app name and purpose, in the page's own HTML.
- *
- * Google's OAuth branding review checks the home page for the exact app name
- * from the consent screen and for a plain explanation of what the app does, so
- * this is a real <h1> and is never hidden behind the welcome dialog.
- */
-function HomeIntro() {
-	return (
-		<header className="homeHead">
-			<h1 className="homeH1">{SITE_NAME}</h1>
-			<p className="homeSub">{SITE_TAGLINE}</p>
-			<p className="homeLead">
-				<strong>{SITE_NAME}</strong> is a free web app for collecting typefaces.
-				Upload font files from your computer or paste a stylesheet link from
-				anywhere, and every family gets an organised entry with a live preview you
-				can type your own text into, in regular, bold and italic. Fonts you add
-				are saved to your personal space and also join the public community
-				library below.
-			</p>
-			<p className="homeFine">
-				Browsing needs no account. Google sign-in is used only to keep your own
-				space and favourites separate, and the app receives your name, email
-				address and profile picture only. <Link href="/about">About</Link> ·{" "}
-				<Link href="/privacy">Privacy policy</Link>
-			</p>
-		</header>
-	)
+/** Counts shown in the hero, derived from the same list the page renders. */
+function heroStats(fonts: FontRecord[]): HeroStats {
+	const people = new Set<string>()
+	let styles = 0
+	for (const font of fonts) {
+		styles += font.faces.length
+		const who = font.added_by ?? font.added_by_name
+		if (who) people.add(who)
+	}
+	return {
+		families: fonts.length,
+		styles,
+		contributors: people.size,
+	}
 }
 
 export default async function HomePage({
@@ -71,7 +57,7 @@ export default async function HomePage({
 	if (!isSupabaseConfigured) {
 		return (
 			<main>
-				<HomeIntro />
+				<Hero stats={{ families: 0, styles: 0, contributors: 0 }} />
 				<div className="notice error">
 					<strong>Supabase is not connected yet.</strong> Copy{" "}
 					<code>.env.example</code> to <code>.env.local</code> and fill in your
@@ -92,8 +78,6 @@ export default async function HomePage({
 	const size = store.has(SIZE_COOKIE)
 		? clampSize(store.get(SIZE_COOKIE)?.value)
 		: DEFAULT_SIZE
-	// Returning visitors are not sent the dialog component at all.
-	const introSeen = store.get(INTRO_COOKIE)?.value === "1"
 
 	const [fonts, user, favorites] = await Promise.all([
 		listFonts(sort),
@@ -130,12 +114,11 @@ export default async function HomePage({
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
 			/>
 
-			<HomeIntro />
-			{introSeen ? null : <IntroDialog />}
+			<Hero stats={heroStats(fonts)} />
 
 			<ThemeControls theme={theme} align={align} size={size} searchable />
 
-			<div className="listBar">
+			<div className="listBar" id="library">
 				<span className="listCount" data-font-count="">
 					{fonts.length}
 				</span>
