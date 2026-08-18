@@ -53,27 +53,6 @@ irm https://type-archive.miftahulislamefaz.xyz/api/fonts/<slug>/install?shell=po
 Next.js 16 (App Router, Turbopack) · React 19 · TypeScript · Supabase
 (Postgres, Storage, Auth, Edge Functions) · Vercel
 
-## Running locally
-
-```bash
-npm install
-cp .env.example .env.local   # fill in the values below
-npm run dev -- -p 3001
-```
-
-| Variable | Purpose |
-| --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Canonical site URL, e.g. `http://localhost:3001` |
-| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase anon / publishable key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Server-side writes and uploads |
-| `SUPABASE_FONT_BUCKET` | Storage bucket for font files (`font-files`) |
-| `ADMIN_EMAILS` | Comma-separated admin emails. Leave unset and everyone is an admin |
-
-Apply `supabase/schema.sql` to a new Supabase project, create a public
-`font-files` bucket, deploy the `compress-font` Edge Function, and enable Google
-as an auth provider.
-
 ## Developer
 
 Built by **[Miftahul Islam Efaz](https://www.miftahulislamefaz.xyz/)** -
