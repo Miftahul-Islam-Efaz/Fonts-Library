@@ -1,0 +1,96 @@
+/* Pagination for the library list. Server-rendered links, no client JS. */
+
+.pager {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	flex-wrap: wrap;
+	padding: 26px var(--pad) 40px;
+	border-top: 1px solid var(--border);
+}
+
+.pagerInfo {
+	font-family: var(--hero-sans, var(--ui));
+	font-size: 12px;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	color: var(--muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.pagerNums {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	flex-wrap: wrap;
+}
+
+.pagerLink,
+.pagerStep {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 34px;
+	height: 34px;
+	padding: 0 10px;
+	border: 1px solid var(--border);
+	font-family: var(--hero-sans, var(--ui));
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--text);
+	text-decoration: none;
+	font-variant-numeric: tabular-nums;
+	transition:
+		background var(--fast) var(--ease),
+		border-color var(--fast) var(--ease),
+		transform var(--fast) var(--ease);
+}
+
+.pagerLink:hover,
+.pagerStep:hover {
+	background: var(--soft);
+	border-color: var(--text);
+	transform: translateY(-1px);
+}
+
+.pagerLink[data-active] {
+	background: var(--text);
+	border-color: var(--text);
+	color: var(--flip);
+}
+
+.pagerLink[data-active]:hover {
+	transform: none;
+	background: var(--text);
+}
+
+.pagerStep[aria-disabled="true"] {
+	opacity: 0.35;
+	pointer-events: none;
+}
+
+.pagerGap {
+	padding: 0 2px;
+	color: var(--muted);
+	font-size: 13px;
+}
+
+@media (max-width: 640px) {
+	.pager {
+		justify-content: center;
+		text-align: center;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.pagerLink,
+	.pagerStep {
+		transition: none;
+	}
+
+	.pagerLink:hover,
+	.pagerStep:hover {
+		transform: none;
+	}
+}

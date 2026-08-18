@@ -31,14 +31,12 @@ import {
 
 export const dynamic = "force-dynamic"
 
-export const metadata = {
-	title: "Type Archive - every family, previewed",
-	description:
-		"Save fonts from anywhere into one organised library with live previews. Each family is server-rendered with its own specimen, style count and original source.",
-	alternates: { canonical: "/" },
-}
+/** Families rendered per page, so the list never scrolls endlessly. */
+const PER_PAGE = 30
 
-/** Counts shown in the hero, derived from the same list the page renders. */
+type HomeSearchParams = { sort?: string; category?: string; page?: string }
+
+/** Counts shown in the hero, derived from the whole library. */
 function heroStats(fonts: FontRecord[]): HeroStats {
 	const people = new Set<string>()
 	let styles = 0
@@ -54,19 +52,70 @@ function heroStats(fonts: FontRecord[]): HeroStats {
 	}
 }
 
-/** Keeps the current category when a sort link is followed, and vice versa. */
-function listHref(sort: string, category: string | null): string {
+/**
+ * Builds a library URL. Sort, category and page stay in sync, and defaults are
+ * omitted so the canonical first page is always plain "/".
+ */
+function listHref(
+	sort: string,
+	category: string | null,
+	page: number = 1,
+	options: { anchor?: boolean } = {},
+): string {
 	const params = new URLSearchParams()
 	if (sort !== DEFAULT_SORT) params.set("sort", sort)
 	if (category) params.set("category", category)
+	if (page > 1) params.set("page", String(page))
 	const query = params.toString()
-	return query ? `/?${query}#library` : "/#library"
+	const anchor = options.anchor === false ? "" : "#library"
+	return query ? `/?${query}${anchor}` : `/${anchor}`
+}
+
+/** Page numbers to show: all of them when few, otherwise a window with gaps. */
+function pageWindow(current: number, total: number): Array<number | "gap"> {
+	if (total <= 7) {
+		return Array.from({ length: total }, (_, index) => index + 1)
+	}
+	const pages = new Set<number>([1, total, current])
+	if (current - 1 > 1) pages.add(current - 1)
+	if (current + 1 < total) pages.add(current + 1)
+	if (current <= 3) pages.add(2).add(3)
+	if (current >= total - 2) pages.add(total - 1).add(total - 2)
+
+	const sorted = [...pages].filter((n) => n >= 1 && n <= total).sort((a, b) => a - b)
+	const out: Array<number | "gap"> = []
+	sorted.forEach((page, index) => {
+		if (index > 0 && page - sorted[index - 1] > 1) out.push("gap")
+		out.push(page)
+	})
+	return out
+}
+
+export async function generateMetadata({
+	searchParams,
+}: {
+	searchParams: Promise<HomeSearchParams>
+}) {
+	const { sort: sortParam, category, page } = await searchParams
+	const sort = isSort(sortParam) ? sortParam : DEFAULT_SORT
+	const pageNumber = Number(page)
+	const current = Number.isFinite(pageNumber) && pageNumber > 1 ? Math.floor(pageNumber) : 1
+	const slug = category ? categorySlug(category) : null
+	const suffix = current > 1 ? ` - page ${current}` : ""
+	return {
+		title: `Type Archive - every family, previewed${suffix}`,
+		description:
+			"Save fonts from anywhere into one organised library with live previews. Each family is server-rendered with its own specimen, style count and original source.",
+		alternates: {
+			canonical: listHref(sort, slug, current, { anchor: false }),
+		},
+	}
 }
 
 export default async function HomePage({
 	searchParams,
 }: {
-	searchParams: Promise<{ sort?: string; category?: string }>
+	searchParams: Promise<HomeSearchParams>
 }) {
 	if (!isSupabaseConfigured) {
 		return (
@@ -81,7 +130,11 @@ export default async function HomePage({
 		)
 	}
 
-	const { sort: sortParam, category: categoryParam } = await searchParams
+	const {
+		sort: sortParam,
+		category: categoryParam,
+		page: pageParam,
+	} = await searchParams
 	const sort = isSort(sortParam) ? sortParam : DEFAULT_SORT
 
 	const store = await cookies()
@@ -108,6 +161,18 @@ export default async function HomePage({
 	const fonts = filterByCategory(allFonts, active)
 	const activeLabel = facets.find((facet) => facet.slug === active)?.label
 
+	// Paginate the filtered list. Out-of-range pages clamp instead of 404ing.
+	const totalPages = Math.max(1, Math.ceil(fonts.length / PER_PAGE))
+	const asked = Number(pageParam)
+	const current = Math.min(
+		Math.max(Number.isFinite(asked) ? Math.floor(asked) : 1, 1),
+		totalPages,
+	)
+	const start = (current - 1) * PER_PAGE
+	const visible = fonts.slice(start, start + PER_PAGE)
+	const rangeStart = fonts.length === 0 ? 0 : start + 1
+	const rangeEnd = start + visible.length
+
 	const jsonLd = {
 		"@context": "https://schema.org",
 		"@type": "CollectionPage",
@@ -115,7 +180,7 @@ export default async function HomePage({
 		description:
 			"A shared collection of typefaces with server-rendered specimens.",
 		numberOfItems: fonts.length,
-		hasPart: fonts.map((font) => ({
+		hasPart: visible.map((font) => ({
 			"@type": "CreativeWork",
 			name: font.name,
 			genre: font.category ?? undefined,
@@ -131,7 +196,8 @@ export default async function HomePage({
 
 	return (
 		<main>
-			<FontHead fonts={allFonts} />
+			{/* Only the visible page's @font-face rules are loaded. */}
+			<FontHead fonts={visible} />
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -176,6 +242,7 @@ export default async function HomePage({
 				<span>
 					{fonts.length === 1 ? "family" : "families"}
 					{activeLabel ? ` in ${activeLabel}` : " in the library"}
+					{totalPages > 1 ? ` - page ${current} of ${totalPages}` : ""}
 				</span>
 				<nav className="sortBar" aria-label="Sort">
 					<span>Sort by</span>
@@ -202,16 +269,63 @@ export default async function HomePage({
 					<Link href={listHref(sort, null)}>Show every family</Link>.
 				</div>
 			) : (
-				<section aria-label="Font families">
-					{fonts.map((font) => (
-						<FontRow
-							key={font.id}
-							font={font}
-							isFavorite={favorites.has(font.id)}
-							signedIn={Boolean(user)}
-						/>
-					))}
-				</section>
+				<>
+					<section aria-label="Font families">
+						{visible.map((font) => (
+							<FontRow
+								key={font.id}
+								font={font}
+								isFavorite={favorites.has(font.id)}
+								signedIn={Boolean(user)}
+							/>
+						))}
+					</section>
+
+					{totalPages > 1 ? (
+						<nav className="pager" aria-label="Pagination">
+							<span className="pagerInfo">
+								{rangeStart}-{rangeEnd} of {fonts.length}
+							</span>
+							<div className="pagerNums">
+								<Link
+									className="pagerStep"
+									href={listHref(sort, active, current - 1)}
+									rel="prev"
+									aria-disabled={current === 1 ? "true" : undefined}
+									tabIndex={current === 1 ? -1 : undefined}
+								>
+									Prev
+								</Link>
+								{pageWindow(current, totalPages).map((entry, index) =>
+									entry === "gap" ? (
+										<span className="pagerGap" key={`gap-${index}`}>
+											...
+										</span>
+									) : (
+										<Link
+											key={entry}
+											className="pagerLink"
+											href={listHref(sort, active, entry)}
+											data-active={entry === current ? "" : undefined}
+											aria-current={entry === current ? "page" : undefined}
+										>
+											{entry}
+										</Link>
+									),
+								)}
+								<Link
+									className="pagerStep"
+									href={listHref(sort, active, current + 1)}
+									rel="next"
+									aria-disabled={current === totalPages ? "true" : undefined}
+									tabIndex={current === totalPages ? -1 : undefined}
+								>
+									Next
+								</Link>
+							</div>
+						</nav>
+					) : null}
+				</>
 			)}
 		</main>
 	)
