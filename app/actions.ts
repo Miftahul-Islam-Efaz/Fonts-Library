@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import { isAdminUser, requireAdmin, requireUser } from "@/lib/auth"
 import type { ActionState } from "@/lib/actionState"
+import { normalizeCategory } from "@/lib/category"
 import { dedupeKey } from "@/lib/dedupe"
 import {
 	cssFormat,
@@ -200,7 +201,7 @@ export async function addFontAction(
 			.insert({
 				name,
 				slug,
-				category: text(formData, "category") || null,
+				category: normalizeCategory(text(formData, "category")),
 				notes: text(formData, "notes") || null,
 				source_type: sourceType,
 				css_url: !isDirectFile && url ? url : null,
@@ -303,7 +304,7 @@ export async function updateFontAction(
 			.from("fonts")
 			.update({
 				name,
-				category: text(formData, "category") || null,
+				category: normalizeCategory(text(formData, "category")),
 				notes: text(formData, "notes") || null,
 				css_url: !isDirectFile && url ? url : null,
 				css_family:

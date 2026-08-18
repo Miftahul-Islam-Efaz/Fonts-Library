@@ -1,3 +1,4 @@
+import { normalizeCategory } from "./category"
 import { cssFormat, DEFAULT_PREVIEW_STYLES } from "./fontMeta"
 import { favoriteCounts } from "./favorites"
 import {
@@ -16,7 +17,7 @@ function sortFaces(font: FontRecord): FontRecord {
 	const faces = [...(font.faces ?? [])].sort(
 		(a, b) => a.weight - b.weight || a.style.localeCompare(b.style),
 	)
-	return { ...font, faces }
+	return { ...font, faces, category: normalizeCategory(font.category) }
 }
 
 function applySort(fonts: FontRecord[], sort: SortId): FontRecord[] {
