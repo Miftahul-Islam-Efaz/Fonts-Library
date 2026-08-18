@@ -6,7 +6,7 @@
  */
 
 export const SITE_URL =
-	process.env.NEXT_PUBLIC_SITE_URL ?? "https://fonts.miftahulislamefaz.xyz"
+	process.env.NEXT_PUBLIC_SITE_URL ?? "https://type-archive.miftahulislamefaz.xyz"
 
 export const SITE_NAME = "Type Archive"
 
