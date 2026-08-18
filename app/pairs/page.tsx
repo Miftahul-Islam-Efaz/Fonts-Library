@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { cookies } from "next/headers"
 import FontHead from "@/components/FontHead"
+import PairBuilder, { type PairOption } from "@/components/PairBuilder"
 import ThemeControls from "@/components/ThemeControls"
 import { cssFamily, listFonts } from "@/lib/fonts"
 import { bestPairs } from "@/lib/pairing"
@@ -20,9 +21,9 @@ import {
 export const dynamic = "force-dynamic"
 
 export const metadata = {
-	title: "Automatic font pairings",
+	title: "Font pairings — build your own or use the suggestions",
 	description:
-		"Every family in the library scored against every other one, ranked by contrast, text comfort, weight range and likes, then previewed as a real headline and paragraph.",
+		"Pair any two families from the library by hand with your own words, sizes and weights, or use pairings scored automatically on contrast, text comfort, weight range and likes.",
 }
 
 const SAMPLE_HEADLINE = "Type that carries the page"
@@ -51,37 +52,51 @@ export default async function PairsPage() {
 	const fonts = await listFonts("alphabetical")
 	const pairs = bestPairs(fonts, 12)
 
+	// Only what the builder needs, so nothing heavy crosses to the client.
+	const options: PairOption[] = fonts.map((font) => ({
+		id: font.id,
+		slug: font.slug,
+		name: font.name,
+		family: cssFamily(font),
+		category: font.category,
+	}))
+
 	return (
 		<main>
 			<FontHead fonts={fonts} />
 
 			<section style={{ marginTop: 24 }}>
-				<h1>Automatic pairings</h1>
+				<h1>Pairings</h1>
 				<p className="lede">
-					Every family in your library is scored against every other one on
-					contrast, how comfortable it is in long text, its weight range and how
-					many likes it has. The strongest combinations are below, previewed as a
-					real headline and paragraph. Add a category when you upload a font and
-					the suggestions get sharper.
+					Build a pairing yourself from any two families in the library, or scroll
+					down for combinations scored automatically on contrast, how comfortable
+					each face is in long text, its weight range and how many likes it has.
 				</p>
 			</section>
 
 			<ThemeControls theme={theme} align={align} size={size} />
 
-			{pairs.length === 0 ? (
-				<div className="notice">
-					Add at least two families and pairings will appear here.{" "}
-					<Link href="/manage">Add a font</Link>.
-				</div>
-			) : (
-				<section aria-label="Recommended pairings">
-					{pairs.map((pair) => (
+			<PairBuilder fonts={options} />
+
+			<section aria-label="Recommended pairings" style={{ marginTop: 40 }}>
+				<h2>Suggested for you</h2>
+				<p className="meta">
+					Add a category when you upload a font and these get sharper.
+				</p>
+
+				{pairs.length === 0 ? (
+					<div className="notice">
+						Add at least two families and pairings will appear here.{" "}
+						<Link href="/manage">Add a font</Link>.
+					</div>
+				) : (
+					pairs.map((pair) => (
 						<article
 							className="fontCard"
 							key={`${pair.heading.id}-${pair.body.id}`}
 						>
 							<div className="cardTop">
-								<h2>
+								<h3>
 									<Link
 										href={`/fonts/${pair.heading.slug}`}
 										style={{ color: "inherit" }}
@@ -95,10 +110,12 @@ export default async function PairsPage() {
 									>
 										{pair.body.name}
 									</Link>
-								</h2>
-								<span className="badge">{pair.headingClass} + {pair.bodyClass}</span>
+								</h3>
+								<span className="badge">
+									{pair.headingClass} + {pair.bodyClass}
+								</span>
 								<span className="cardTopRight">
-									<span className="likeCount">{pair.score} / 100</span>
+									<span className="likeCount">{pair.score} / 100</span>
 								</span>
 							</div>
 
@@ -125,9 +142,9 @@ export default async function PairsPage() {
 								{SAMPLE_BODY}
 							</p>
 						</article>
-					))}
-				</section>
-			)}
+					))
+				)}
+			</section>
 		</main>
 	)
 }

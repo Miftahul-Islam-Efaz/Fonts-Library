@@ -1,0 +1,329 @@
+/* Pair builder and the "use this font" panel. */
+
+.pairBuilder,
+.usePanel {
+	border: 1px solid var(--border);
+	background: var(--surface);
+	padding: clamp(18px, 3vw, 30px);
+	margin-top: 28px;
+}
+
+.pairBuilderHead,
+.usePanelHead {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 14px;
+	margin-bottom: 20px;
+}
+
+.pairBuilderTitle,
+.useTitle {
+	margin: 4px 0 0;
+	font-size: clamp(22px, 3vw, 30px);
+	font-weight: 800;
+	letter-spacing: -0.025em;
+}
+
+.pairBuilderActions {
+	display: flex;
+	gap: 8px;
+}
+
+.pairSwap,
+.pairReset,
+.pairCopy,
+.useCopy,
+.useDownload,
+.useTab {
+	font-size: 12px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	padding: 8px 14px;
+	border: 1px solid var(--border);
+	background: var(--canvas);
+	color: var(--text);
+	cursor: pointer;
+	transition:
+		background var(--fast) var(--ease),
+		color var(--fast) var(--ease),
+		transform var(--fast) var(--ease);
+}
+
+.pairSwap:hover,
+.pairReset:hover,
+.useTab:hover,
+.useDownload:hover {
+	background: var(--soft);
+	transform: translateY(-1px);
+}
+
+.pairCopy,
+.useCopy {
+	background: var(--text);
+	color: var(--flip);
+	border-color: var(--text);
+}
+
+.pairCopy:hover,
+.useCopy:hover {
+	transform: translateY(-1px);
+	opacity: 0.9;
+}
+
+.useCopy[data-copied="true"] {
+	background: var(--accent-soft);
+	color: var(--text);
+	border-color: var(--accent-border);
+}
+
+/* Pickers */
+
+.pairPickers {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 16px;
+}
+
+.pairPicker {
+	border: 1px solid var(--border);
+	background: var(--canvas);
+	padding: 14px;
+}
+
+.pairLabel {
+	display: block;
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin-bottom: 8px;
+}
+
+.pairPicker select {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid var(--border);
+	background: var(--canvas);
+	color: var(--text);
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.pairFields {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.pairField {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.pairField input[type="range"] {
+	width: 120px;
+	accent-color: var(--text);
+}
+
+.pairField select {
+	padding: 5px 8px;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.pairToggle {
+	align-self: flex-end;
+	padding: 7px 12px;
+	font-size: 12px;
+	font-style: italic;
+	border: 1px solid var(--border);
+	background: var(--canvas);
+	color: var(--text);
+	cursor: pointer;
+	transition: background var(--fast) var(--ease);
+}
+
+.pairToggle[data-on="true"] {
+	background: var(--text);
+	color: var(--flip);
+	border-color: var(--text);
+}
+
+/* Stage */
+
+.pairStage {
+	margin-top: 20px;
+	border-top: 1px solid var(--border);
+	padding-top: 20px;
+}
+
+.pairRole {
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--muted);
+	margin: 0 0 8px;
+}
+
+.pairHeadline {
+	margin: 0 0 26px;
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+	outline: none;
+	border-radius: 2px;
+	transition: box-shadow var(--fast) var(--ease);
+}
+
+.pairBody {
+	margin: 0;
+	max-width: 66ch;
+	outline: none;
+	border-radius: 2px;
+	transition: box-shadow var(--fast) var(--ease);
+}
+
+.pairHeadline:hover,
+.pairBody:hover {
+	box-shadow: 0 0 0 1px var(--border);
+}
+
+.pairHeadline:focus,
+.pairBody:focus {
+	box-shadow: 0 0 0 2px var(--accent-border);
+}
+
+.pairFoot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 24px;
+	padding-top: 16px;
+	border-top: 1px solid var(--border);
+}
+
+.pairFootLinks {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.pairSnippet,
+.useCode {
+	margin: 12px 0 0;
+	padding: 14px 16px;
+	border: 1px solid var(--border);
+	background: var(--soft);
+	font-size: 12.5px;
+	line-height: 1.6;
+	overflow-x: auto;
+	white-space: pre;
+}
+
+/* Use panel */
+
+.useTabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.useTab[data-active="true"] {
+	background: var(--text);
+	color: var(--flip);
+	border-color: var(--text);
+}
+
+.useBody {
+	border-top: 1px solid var(--border);
+	padding-top: 18px;
+	animation: fadeIn var(--mid) var(--ease);
+}
+
+.useNote {
+	margin: 0 0 14px;
+	font-size: 14px;
+	line-height: 1.6;
+	color: var(--muted);
+	max-width: 70ch;
+}
+
+.useNote code {
+	font-size: 12.5px;
+	padding: 1px 5px;
+	background: var(--soft);
+	border: 1px solid var(--border);
+}
+
+.useBlock + .useBlock {
+	margin-top: 18px;
+}
+
+.useBlockHead {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.useCaption {
+	font-size: 11px;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--muted);
+}
+
+.useFiles {
+	list-style: none;
+	margin: 0 0 14px;
+	padding: 0;
+	border: 1px solid var(--border);
+}
+
+.useFile {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 12px;
+	padding: 12px 14px;
+	border-bottom: 1px solid var(--border);
+}
+
+.useFile:last-child {
+	border-bottom: 0;
+}
+
+.useFileName {
+	font-weight: 700;
+	font-size: 15px;
+}
+
+.useFileMeta {
+	font-size: 12px;
+	color: var(--muted);
+	margin-right: auto;
+}
+
+.useDownload {
+	text-decoration: none;
+}
+
+@media (max-width: 860px) {
+	.pairPickers {
+		grid-template-columns: 1fr;
+	}
+
+	.pairField input[type="range"] {
+		width: 96px;
+	}
+}

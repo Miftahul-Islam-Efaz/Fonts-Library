@@ -5,10 +5,12 @@ import { cookies } from "next/headers"
 import FontHead from "@/components/FontHead"
 import Specimen from "@/components/Specimen"
 import ThemeControls from "@/components/ThemeControls"
-import { faceLabel } from "@/lib/fontMeta"
+import UsePanel, { type UsePanelData, type UseFace } from "@/components/UsePanel"
+import { cssFormat, faceLabel, fileExtension, slugify } from "@/lib/fontMeta"
 import { myFavoriteIds } from "@/lib/favorites"
 import { cssFamily, faceUrl, getFontBySlug, listFonts } from "@/lib/fonts"
 import { pairsForFont } from "@/lib/pairing"
+import { SITE_URL } from "@/lib/site"
 import { isSupabaseConfigured } from "@/lib/supabase"
 import { getCurrentUser } from "@/lib/supabaseServer"
 import {
@@ -22,6 +24,7 @@ import {
 	isAlign,
 	isTheme,
 } from "@/lib/theme"
+import type { FontRecord } from "@/lib/types"
 
 export const dynamic = "force-dynamic"
 
@@ -39,10 +42,39 @@ export async function generateMetadata({
 		title: font.name,
 		description:
 			font.notes ??
-			`${font.name}${font.category ? ` — ${font.category}` : ""} specimen with ${styles || "multiple"} styles, previewed in regular, bold, italic and bold italic.`,
+			`${font.name}${font.category ? ` — ${font.category}` : ""} specimen with ${styles || "multiple"} styles, previewed in regular, bold, italic and bold italic. Download the files, copy the embed code, or install it from your terminal.`,
 		alternates: { canonical: `/fonts/${font.slug}` },
 		robots: font.is_public ? undefined : { index: false, follow: false },
 	}
+}
+
+/** Download rows for the use panel, with predictable file names. */
+function useFaces(font: FontRecord): UseFace[] {
+	const used = new Set<string>()
+	const rows: UseFace[] = []
+	for (const face of font.faces) {
+		const url = faceUrl(face)
+		if (!url) continue
+		const label = face.label || faceLabel(face.weight, face.style)
+		const extension = fileExtension(url) || "woff2"
+		const base = slugify(`${font.name} ${label}`)
+		let fileName = `${base}.${extension}`
+		let counter = 2
+		while (used.has(fileName)) {
+			fileName = `${base}-${counter}.${extension}`
+			counter += 1
+		}
+		used.add(fileName)
+		rows.push({
+			label,
+			weight: face.weight,
+			style: face.style,
+			url,
+			format: face.format ?? cssFormat(url),
+			fileName,
+		})
+	}
+	return rows
 }
 
 export default async function FontPage({
@@ -76,6 +108,18 @@ export default async function FontPage({
 		? publicFonts
 		: [font, ...publicFonts]
 	const pairs = pairsForFont(font, fonts, 4)
+
+	const usePanel: UsePanelData = {
+		name: font.name,
+		slug: font.slug,
+		family: cssFamily(font),
+		sourceType: font.source_type,
+		cssUrl: font.css_url,
+		sourcePage: font.source_page,
+		license: font.license,
+		faces: useFaces(font),
+		installUrl: `${SITE_URL}/api/fonts/${font.slug}/install`,
+	}
 
 	const jsonLd = {
 		"@context": "https://schema.org",
@@ -173,12 +217,14 @@ export default async function FontPage({
 				signedIn={Boolean(user)}
 			/>
 
+			<UsePanel font={usePanel} />
+
 			{pairs.length > 0 ? (
 				<section style={{ marginTop: 32 }}>
 					<h2>Pairs well with</h2>
 					<p className="meta">
 						Scored automatically against everything else in the library.{" "}
-						<Link href="/pairs">See all pairings</Link>.
+						<Link href="/pairs">Build your own pairing</Link>.
 					</p>
 					{pairs.map((pair) => (
 						<div className="styleRow" key={`${pair.heading.id}-${pair.body.id}`}>
@@ -211,29 +257,6 @@ export default async function FontPage({
 							</p>
 						</div>
 					))}
-				</section>
-			) : null}
-
-			{font.faces.some((face) => faceUrl(face)) ? (
-				<section style={{ marginTop: 32 }}>
-					<h2>Files</h2>
-					<ul>
-						{font.faces.map((face) => {
-							const url = faceUrl(face)
-							if (!url) return null
-							return (
-								<li key={face.id}>
-									<a href={url} download>
-										{face.label || faceLabel(face.weight, face.style)}
-									</a>{" "}
-									<span className="meta">
-										{face.weight} {face.style}
-										{face.format ? ` · ${face.format}` : ""}
-									</span>
-								</li>
-							)
-						})}
-					</ul>
 				</section>
 			) : null}
 		</main>
